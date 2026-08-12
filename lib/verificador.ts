@@ -1,21 +1,41 @@
 import dns from "node:dns/promises";
+import type { LookupAddress } from "node:dns";
 import net from "node:net";
 import tls from "node:tls";
+import http from "node:http";
+import https from "node:https";
 
 export type StatusItem = "ok" | "aviso" | "falha";
 
+export type ItemDados = {
+  hostname?: string;
+  statusCode?: number;
+  valido?: boolean;
+  autoAssinado?: boolean;
+  expiraEm?: string;
+  dias?: number;
+  emissor?: string;
+  protocolo?: string;
+  tls10?: boolean;
+  tls11?: boolean;
+  valor?: string;
+  quantidade?: number;
+  seletores?: string;
+  ok?: number;
+  total?: number;
+  caminho?: string;
+  registros?: string;
+  estado?: string;
+};
+
 export type ItemCheck = {
   id: string;
-  titulo: string;
-  descricao: string;
   status: StatusItem;
-  detalhe?: string;
-  dica?: string;
+  dados?: ItemDados;
 };
 
 export type Categoria = {
   id: string;
-  titulo: string;
   peso: number;
   itens: ItemCheck[];
 };
@@ -29,6 +49,25 @@ export type ResultadoCheck = {
   grade: "A+" | "A" | "B" | "C" | "D" | "F";
   timestamp: string;
   servidor?: string;
+};
+
+export class VerificadorErro extends Error {
+  codigo: string;
+
+  constructor(codigo: string, mensagem: string) {
+    super(mensagem);
+    this.name = "VerificadorErro";
+    this.codigo = codigo;
+  }
+}
+
+const USER_AGENT = "VulnexusAI/1.0 (+scanner de segurança)";
+const TIMEOUT_REQUISICAO_MS = 8000;
+
+type RespostaPinada = {
+  status: number;
+  url: string;
+  headers: Headers;
 };
 
 function isIPPrivado(host: string): boolean {
@@ -50,9 +89,9 @@ function normalizaUrl(input: string): URL {
   if (!/^https?:\/\//i.test(raw)) raw = `https://${raw}`;
   const u = new URL(raw);
   if (u.protocol !== "http:" && u.protocol !== "https:") {
-    throw new Error("Somente URLs http/https são aceitas.");
+    throw new VerificadorErro("protocolo-invalido", "Somente URLs http/https são aceitas.");
   }
-  if (!u.hostname) throw new Error("URL inválida.");
+  if (!u.hostname) throw new VerificadorErro("url-invalida", "URL inválida.");
   return u;
 }
 
@@ -60,15 +99,80 @@ function tinhaProtocolo(input: string): boolean {
   return /^https?:\/\//i.test(input.trim());
 }
 
+async function resolveHostPublico(url: URL): Promise<string> {
+  const host = url.hostname.replace(/^\[|\]$/g, "");
+  if (net.isIP(host)) {
+    if (isIPPrivado(host)) throw new VerificadorErro("ip-privado", "Endereços privados não são permitidos.");
+    return host;
+  }
+
+  let addrs: LookupAddress[];
+  try {
+    addrs = await dns.lookup(host, { all: true });
+  } catch {
+    throw new VerificadorErro("dominio-nao-resolve", "Não foi possível resolver o domínio.");
+  }
+  if (addrs.length === 0) throw new VerificadorErro("dominio-nao-resolve", "Não foi possível resolver o domínio.");
+
+  const invalidos = addrs.filter(a => isIPPrivado(a.address));
+  if (invalidos.length > 0) {
+    throw new VerificadorErro("dominio-privado", "O domínio resolve para um endereço privado — não permitido.");
+  }
+
+  const ipv4 = addrs.find(a => net.isIP(a.address) === 4);
+  return ipv4?.address ?? addrs[0]!.address;
+}
+
+function lookupFixado(ip: string): net.LookupFunction {
+  return (_hostname, opcoes, callback) => {
+    if (opcoes.all) {
+      callback(null, [{ address: ip, family: 4 }]);
+    } else {
+      callback(null, ip, 4);
+    }
+  };
+}
+
+function requisicaoPinada(url: URL, ip: string, timeoutMs = TIMEOUT_REQUISICAO_MS): Promise<RespostaPinada> {
+  return new Promise((resolve, reject) => {
+    const lib = url.protocol === "https:" ? https : http;
+    const req = lib.request(
+      url,
+      {
+        method: "HEAD",
+        signal: AbortSignal.timeout(timeoutMs),
+        lookup: lookupFixado(ip),
+        headers: {
+          host: url.host,
+          "user-agent": USER_AGENT,
+        },
+      },
+      res => {
+        res.resume();
+        const headers = new Headers();
+        for (const [chave, valor] of Object.entries(res.headers)) {
+          if (Array.isArray(valor)) {
+            for (const item of valor) headers.append(chave, item);
+          } else if (valor !== undefined) {
+            headers.set(chave, valor);
+          }
+        }
+        resolve({ status: res.statusCode ?? 0, url: url.href, headers });
+      }
+    );
+    req.on("error", () => {
+      reject(new VerificadorErro("conexao-falhou", "Não foi possível conectar ao site (tempo esgotado ou conexão recusada)."));
+    });
+    req.end();
+  });
+}
+
 async function testaRedirectHttp(url: URL): Promise<{ status: number; de: string; para: string } | null> {
   const httpUrl = new URL(url.href);
   httpUrl.protocol = "http:";
   try {
-    const res = await fetch(httpUrl, {
-      redirect: "manual",
-      method: "HEAD",
-      headers: { "user-agent": "VerificaSeguranca/1.0 (+scanner de segurança)" },
-    });
+    const ip = await resolveHostPublico(httpUrl);
+    const res = await requisicaoPinada(httpUrl, ip);
     const loc = res.headers.get("location");
     if (res.status >= 300 && res.status < 400 && loc && loc.toLowerCase().startsWith("https:")) {
       return { status: res.status, de: httpUrl.href, para: loc };
@@ -79,29 +183,13 @@ async function testaRedirectHttp(url: URL): Promise<{ status: number; de: string
   }
 }
 
-async function validaHost(url: URL): Promise<void> {
-  const host = url.hostname.replace(/^\[|\]$/g, "");
-  if (net.isIP(host)) {
-    if (isIPPrivado(host)) throw new Error("Endereços privados não são permitidos.");
-  } else {
-    const addrs = await dns.lookup(host, { all: true });
-    const invalidos = addrs.filter(a => isIPPrivado(a.address));
-    if (invalidos.length > 0) {
-      throw new Error("O domínio resolve para um endereço privado — não permitido.");
-    }
-  }
-}
-
-async function coletaResponses(url: URL, limite = 5): Promise<{ respostas: Response[]; final: Response }> {
+async function coletaResponses(url: URL, limite = 5): Promise<{ respostas: RespostaPinada[]; final: RespostaPinada }> {
   let atual = url;
-  const respostas: Response[] = [];
-  let final!: Response;
+  const respostas: RespostaPinada[] = [];
+  let final!: RespostaPinada;
   for (let i = 0; i <= limite; i++) {
-    const res = await fetch(atual, {
-      redirect: "manual",
-      method: "HEAD",
-      headers: { "user-agent": "VerificaSeguranca/1.0 (+scanner de segurança)" },
-    });
+    const ip = await resolveHostPublico(atual);
+    const res = await requisicaoPinada(atual, ip);
     if (res.status >= 300 && res.status < 400 && res.headers.get("location")) {
       respostas.push(res);
       const next = new URL(res.headers.get("location")!, atual);
@@ -113,7 +201,7 @@ async function coletaResponses(url: URL, limite = 5): Promise<{ respostas: Respo
     }
   }
   if (!final) {
-    throw new Error("Redirecionamento em loop ou limite excedido.");
+    throw new VerificadorErro("loop-redirect", "Redirecionamento em loop ou limite excedido.");
   }
   return { respostas, final };
 }
@@ -272,9 +360,92 @@ function statusDosItens(itens: ItemCheck[]): number {
   return Math.round((ok / pontuados.length) * 100);
 }
 
+async function checaArquivoSensivel(urlBase: string, caminho: string): Promise<StatusItem> {
+  const alvo = new URL(caminho, urlBase);
+  try {
+    const ip = await resolveHostPublico(alvo);
+    const res = await requisicaoPinada(alvo, ip);
+    if (res.status >= 200 && res.status < 300) return "falha";
+    if (res.status === 401 || res.status === 403) return "ok";
+    if (res.status >= 300 && res.status < 400) return "aviso";
+    return "ok";
+  } catch {
+    return "aviso";
+  }
+}
+
+async function checaRecursoPublico(urlBase: string, caminho: string): Promise<{ status: number; presente: boolean }> {
+  const alvo = new URL(caminho, urlBase);
+  try {
+    const ip = await resolveHostPublico(alvo);
+    const res = await requisicaoPinada(alvo, ip);
+    return { status: res.status, presente: res.status === 200 };
+  } catch {
+    return { status: 0, presente: false };
+  }
+}
+
+async function checaCaa(host: string): Promise<{ registros: Array<{ tag: string; value: string }> }> {
+  try {
+    const registros = await dns.resolveCaa(host);
+    return {
+      registros: registros.map(r => {
+        const tag = r.issue
+          ? "issue"
+          : r.issuewild
+            ? "issuewild"
+            : r.iodef
+              ? "iodef"
+              : r.contactemail
+                ? "contactemail"
+                : r.contactphone
+                  ? "contactphone"
+                  : "desconhecido";
+        const value = String(r.issue ?? r.issuewild ?? r.iodef ?? r.contactemail ?? r.contactphone ?? "");
+        return { tag, value };
+      }),
+    };
+  } catch {
+    return { registros: [] };
+  }
+}
+
+async function checaSafeBrowsing(url: string): Promise<{ status: StatusItem; estado: string }> {
+  const chave = process.env.GOOGLE_SAFE_BROWSING_KEY;
+  if (!chave) {
+    return { status: "aviso", estado: "sem-chave" };
+  }
+  try {
+    const res = await fetch("https://safebrowsing.googleapis.com/v4/threatMatches:find?key=" + encodeURIComponent(chave), {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        client: { clientId: "vulnexusai", clientVersion: "1.0.0" },
+        threatInfo: {
+          threatTypes: ["MALWARE", "SOCIAL_ENGINEERING", "UNWANTED_SOFTWARE", "POTENTIALLY_HARMFUL_APPLICATION"],
+          platformTypes: ["ANY_PLATFORM"],
+          threatEntryTypes: ["URL"],
+          threatEntries: [{ url }],
+        },
+      }),
+      signal: AbortSignal.timeout(TIMEOUT_REQUISICAO_MS),
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      return { status: "aviso", estado: "falha-consulta" };
+    }
+    const dados = (await res.json()) as { matches?: unknown[] };
+    if (dados.matches && dados.matches.length > 0) {
+      return { status: "falha", estado: "ameaca" };
+    }
+    return { status: "ok", estado: "ok" };
+  } catch {
+    return { status: "aviso", estado: "sem-conexao" };
+  }
+}
+
 export async function verificarSite(input: string): Promise<ResultadoCheck> {
   const url = normalizaUrl(input);
-  await validaHost(url);
 
   const { respostas, final } = await coletaResponses(url);
 
@@ -296,7 +467,7 @@ export async function verificarSite(input: string): Promise<ResultadoCheck> {
 
   const cookies: string[] = [];
   for (const res of [final, ...respostas]) {
-    const set = res.headers.getSetCookie ? res.headers.getSetCookie() : [];
+    const set = res.headers.getSetCookie();
     for (const c of set) cookies.push(c);
   }
 
@@ -316,138 +487,80 @@ export async function verificarSite(input: string): Promise<ResultadoCheck> {
   const itensHttps: ItemCheck[] = [];
   itensHttps.push({
     id: "https-ativo",
-    titulo: "Conexão HTTPS",
-    descricao: "O site deve responder por HTTPS para criptografar o tráfego.",
     status: https ? "ok" : "falha",
-    detalhe: https ? hostname : "O site não ofereceu HTTPS.",
-    dica: "Configure um certificado TLS (Let's Encrypt, Cloudflare ou do seu provedor) e sirva o site somente por HTTPS.",
+    dados: { hostname },
   });
   itensHttps.push({
     id: "redirect-http",
-    titulo: "Redirect HTTP → HTTPS",
-    descricao: "Visitas por HTTP devem ser redirecionadas automaticamente para HTTPS.",
     status: httpParaHttps ? "ok" : "aviso",
-    detalhe: httpParaHttps
-      ? `Redirecionamento ${redirects.find(r => r.para.startsWith("https:"))?.status || 301} detectado.`
-      : "Nenhum redirecionamento automático detectado na cadeia.",
-    dica: "Configure um redirect 301 de http:// para https:// no servidor ou na plataforma de hospedagem.",
+    dados: httpParaHttps
+      ? { statusCode: redirects.find(r => r.para.startsWith("https:"))?.status ?? 301 }
+      : undefined,
   });
   if (infoTls) {
     itensHttps.push({
       id: "certificado",
-      titulo: "Certificado SSL",
-      descricao: "O certificado deve ser válido, não expirado e emitido por uma autoridade confiável.",
       status: infoTls.valido ? "ok" : "falha",
-      detalhe: infoTls.valido
-        ? `Válido até ${new Date(infoTls.expiraEm).toLocaleDateString("pt-BR")} (${infoTls.diasRestantes} dias) — ${infoTls.emissor}`
-        : infoTls.autoAssinado
-          ? "Certificado auto-assinado — navegadores exibirão aviso."
-          : `Certificado inválido ou expirado. Emitente: ${infoTls.emissor}`,
-      dica: "Renove o certificado antes do vencimento ou troque para um emitido por autoridade confiável (Let's Encrypt).",
+      dados: infoTls.valido
+        ? { valido: true, expiraEm: infoTls.expiraEm, dias: infoTls.diasRestantes, emissor: infoTls.emissor }
+        : { valido: false, autoAssinado: infoTls.autoAssinado, emissor: infoTls.emissor },
     });
     itensHttps.push({
       id: "tls-versao",
-      titulo: "Protocolo TLS",
-      descricao: "TLS 1.0 e 1.1 são obsoletos e devem ser desativados (deprecados em 2020).",
       status: infoTls.tls1_0 || infoTls.tls1_1 ? "falha" : "ok",
-      detalhe: `Negociado: ${infoTls.protocolo}.` + (infoTls.tls1_0 ? " TLS 1.0 ativo." : "") + (infoTls.tls1_1 ? " TLS 1.1 ativo." : ""),
-      dica: "Desative TLS 1.0/1.1 e mantenha TLS 1.2 e 1.3 habilitados no servidor.",
+      dados: { protocolo: infoTls.protocolo, tls10: infoTls.tls1_0, tls11: infoTls.tls1_1 },
     });
   }
-  categorias.push({ id: "https", titulo: "HTTPS e Certificado", peso: 30, itens: itensHttps });
+  categorias.push({ id: "https", peso: 20, itens: itensHttps });
 
   // --- Headers de Segurança (peso 40) ---
-  const HEADERS = [
-    {
-      id: "hsts",
-      titulo: "Strict-Transport-Security",
-      descricao: "HSTS — força conexões HTTPS e impede downgrade.",
-      dica: "Adicione `Strict-Transport-Security: max-age=31536000; includeSubDomains` em todas as respostas HTTPS.",
-    },
-    {
-      id: "csp",
-      titulo: "Content-Security-Policy",
-      descricao: "CSP — controla quais recursos o navegador pode carregar.",
-      dica: "Defina uma política CSP (ex.: `default-src 'self'`) e ajuste conforme os recursos do site.",
-    },
-    {
-      id: "xframe",
-      titulo: "X-Frame-Options",
-      descricao: "Impede que o site seja exibido dentro de iframes de terceiros (clickjacking).",
-      dica: "Adicione `X-Frame-Options: SAMEORIGIN` (ou use a diretiva frame-ancestors do CSP).",
-    },
-    {
-      id: "xcontenttype",
-      titulo: "X-Content-Type-Options",
-      descricao: "Impede MIME sniffing do navegador.",
-      dica: "Adicione `X-Content-Type-Options: nosniff`.",
-    },
-    {
-      id: "referrer",
-      titulo: "Referrer-Policy",
-      descricao: "Controla quais informações são enviadas no header Referer.",
-      dica: "Adicione `Referrer-Policy: strict-origin-when-cross-origin`.",
-    },
-    {
-      id: "permissions",
-      titulo: "Permissions-Policy",
-      descricao: "Limita acesso a APIs do navegador (câmera, GPS, etc.).",
-      dica: "Adicione `Permissions-Policy` restringindo geolocation, camera, microphone, etc.",
-    },
-  ];
+  const NOMES_HEADERS: Record<string, string> = {
+    hsts: "Strict-Transport-Security",
+    csp: "Content-Security-Policy",
+    xframe: "X-Frame-Options",
+    xcontenttype: "X-Content-Type-Options",
+    referrer: "Referrer-Policy",
+    permissions: "Permissions-Policy",
+  };
 
   const itensHeaders: ItemCheck[] = [];
-  for (const h of HEADERS) {
-    const valor = final.headers.get(h.id === "hsts" ? "Strict-Transport-Security" : h.id === "csp" ? "Content-Security-Policy" : h.id === "xframe" ? "X-Frame-Options" : h.id === "xcontenttype" ? "X-Content-Type-Options" : h.id === "referrer" ? "Referrer-Policy" : "Permissions-Policy");
+  for (const id of Object.keys(NOMES_HEADERS)) {
+    const valor = final.headers.get(NOMES_HEADERS[id]);
     const presente = valor !== null && valor.trim() !== "";
     itensHeaders.push({
-      id: h.id,
-      titulo: h.titulo,
-      descricao: h.descricao,
+      id,
       status: presente ? "ok" : "falha",
-      detalhe: presente ? valor! : "Header ausente.",
-      dica: h.dica,
+      dados: presente ? { valor: valor! } : undefined,
     });
   }
-  categorias.push({ id: "headers", titulo: "Headers de Segurança", peso: 40, itens: itensHeaders });
+  categorias.push({ id: "headers", peso: 30, itens: itensHeaders });
 
   // --- DNS & Email (peso 20) ---
   const itensDns: ItemCheck[] = [];
   itensDns.push({
     id: "spf",
-    titulo: "SPF",
-    descricao: "SPF — autoriza quais servidores podem enviar email em nome do domínio.",
     status: spf.temSpf ? "ok" : "falha",
-    detalhe: spf.temSpf ? `Registro SPF encontrado (${spf.registros.filter(r => r.toLowerCase().startsWith("v=spf1")).length} TXT).` : "Nenhum registro SPF encontrado.",
-    dica: "Publique um registro TXT como `v=spf1 include:_spf.provedor ~all` no DNS do domínio.",
+    dados: spf.temSpf
+      ? { quantidade: spf.registros.filter(r => r.toLowerCase().startsWith("v=spf1")).length }
+      : undefined,
   });
   itensDns.push({
     id: "dmarc",
-    titulo: "DMARC",
-    descricao: "DMARC — política de como tratar emails forjados com seu domínio.",
     status: dmarc.temDmarc ? "ok" : "falha",
-    detalhe: dmarc.temDmarc ? "Registro DMARC publicado." : "Nenhum registro DMARC (_dmarc) encontrado.",
-    dica: "Publique `_dmarc.<dominio> TXT v=DMARC1; p=none; rua=mailto:seu@email` e depois evolua a política.",
   });
   itensDns.push({
     id: "dkim",
-    titulo: "DKIM",
-    descricao: "DKIM — assinatura digital que valida a autenticidade dos emails.",
     status: dkim.sucesso ? "ok" : "aviso",
-    detalhe: dkim.sucesso ? `Seletor(es) encontrado(s): ${dkim.encontrado.join(", ")}.` : "Nenhum seletor DKIM comum encontrado.",
-    dica: "Configure DKIM no seu provedor de email e publique a chave pública em `<seletor>._domainkey.<dominio>`.",
+    dados: dkim.sucesso ? { seletores: dkim.encontrado.join(", ") } : undefined,
   });
-  categorias.push({ id: "dns", titulo: "DNS e Email", peso: 20, itens: itensDns });
+  categorias.push({ id: "dns", peso: 15, itens: itensDns });
 
   // --- Cookies (peso 10) ---
   const itensCookies: ItemCheck[] = [];
   if (cookies.length === 0) {
     itensCookies.push({
       id: "cookies",
-      titulo: "Cookies de sessão",
-      descricao: "Cookies de sessão devem usar atributos de segurança.",
       status: "ok",
-      detalhe: "Nenhum cookie definido na cadeia de resposta.",
     });
   } else {
     const seguros = cookies.filter(c => /;\s*secure/i.test(c)).length;
@@ -455,30 +568,79 @@ export async function verificarSite(input: string): Promise<ResultadoCheck> {
     const total = cookies.length;
     itensCookies.push({
       id: "cookies-secure",
-      titulo: "Atributo Secure",
-      descricao: "Cookies devem ser enviados somente por HTTPS.",
       status: seguros === total ? "ok" : "falha",
-      detalhe: `${seguros}/${total} cookies com Secure.`,
-      dica: "Adicione `Secure` a todos os cookies.",
+      dados: { ok: seguros, total },
     });
     itensCookies.push({
       id: "cookies-httponly",
-      titulo: "Atributo HttpOnly",
-      descricao: "Impede acesso ao cookie via JavaScript (mitiga XSS).",
       status: httpOnly === total ? "ok" : "falha",
-      detalhe: `${httpOnly}/${total} cookies com HttpOnly.`,
-      dica: "Adicione `HttpOnly` a cookies que não precisam ser lidos por JavaScript.",
+      dados: { ok: httpOnly, total },
     });
     itensCookies.push({
       id: "cookies-samesite",
-      titulo: "SameSite",
-      descricao: "Limita envio do cookie em requisições de outros sites (CSRF).",
       status: cookies.every(c => /;\s*samesite/i.test(c)) ? "ok" : "aviso",
-      detalhe: `${cookies.filter(c => /;\s*samesite/i.test(c)).length}/${total} cookies com SameSite.`,
-      dica: "Adicione `SameSite=Lax` (ou `Strict` quando possível) aos cookies.",
+      dados: { ok: cookies.filter(c => /;\s*samesite/i.test(c)).length, total },
     });
   }
-  categorias.push({ id: "cookies", titulo: "Cookies", peso: 10, itens: itensCookies });
+  categorias.push({ id: "cookies", peso: 5, itens: itensCookies });
+
+  // --- Arquivos Sensíveis (peso 15) ---
+  const ARQUIVOS_SENSIVEIS: Array<{ id: string; caminho: string }> = [
+    { id: "env", caminho: "/.env" },
+    { id: "git-config", caminho: "/.git/config" },
+    { id: "git-head", caminho: "/.git/HEAD" },
+    { id: "wp-backup", caminho: "/wp-config.php.bak" },
+    { id: "ds-store", caminho: "/.DS_Store" },
+    { id: "config-php", caminho: "/config.php~" },
+  ];
+
+  const statusArquivos = await Promise.all(ARQUIVOS_SENSIVEIS.map(a => checaArquivoSensivel(final.url, a.caminho)));
+
+  const itensArquivos: ItemCheck[] = ARQUIVOS_SENSIVEIS.map((a, i) => ({
+    id: a.id,
+    status: statusArquivos[i]!,
+    dados: { caminho: a.caminho },
+  }));
+  categorias.push({ id: "arquivos", peso: 15, itens: itensArquivos });
+
+  // --- Conteúdo e Metadados (peso 10) ---
+  const RECURSOS_PUBLICOS: Array<{ id: string; caminho: string }> = [
+    { id: "robots", caminho: "/robots.txt" },
+    { id: "sitemap", caminho: "/sitemap.xml" },
+    { id: "security-txt", caminho: "/.well-known/security.txt" },
+  ];
+
+  const statusRecursos = await Promise.all(RECURSOS_PUBLICOS.map(r => checaRecursoPublico(final.url, r.caminho)));
+
+  const itensRecursos: ItemCheck[] = RECURSOS_PUBLICOS.map((r, i) => {
+    const res = statusRecursos[i]!;
+    return {
+      id: r.id,
+      status: res.presente ? "ok" : "aviso",
+      dados: { caminho: r.caminho, statusCode: res.status },
+    };
+  });
+  categorias.push({ id: "conteudo", peso: 10, itens: itensRecursos });
+
+  // --- Infraestrutura (peso 5) ---
+  const [caa, safeBrowsing] = await Promise.all([checaCaa(base), checaSafeBrowsing(final.url)]);
+
+  const temIssue = caa.registros.some(r => r.tag === "issue");
+  const itensInfra: ItemCheck[] = [
+    {
+      id: "caa",
+      status: temIssue ? "ok" : "aviso",
+      dados: caa.registros.length > 0
+        ? { registros: caa.registros.map(r => `${r.tag}=${r.value}`).join(", ") }
+        : undefined,
+    },
+    {
+      id: "safe-browsing",
+      status: safeBrowsing.status,
+      dados: { estado: safeBrowsing.estado },
+    },
+  ];
+  categorias.push({ id: "infra", peso: 5, itens: itensInfra });
 
   // --- Score ---
   const totalPeso = categorias.reduce((acc, c) => acc + c.peso, 0);

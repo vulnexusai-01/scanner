@@ -1,0 +1,507 @@
+{
+  "meta": {
+    "title": "VulnexusAI — Verificação de segurança de sites",
+    "description": "Verifique headers de segurança HTTP, HTTPS, certificado SSL, DNS de email e cookies com score automático e dicas de correção. Ferramenta gratuita da VulnexusAI.",
+    "keywords": [
+      "verificação de segurança",
+      "scanner de segurança",
+      "headers de segurança",
+      "HTTPS",
+      "certificado SSL",
+      "SPF",
+      "DMARC",
+      "DKIM",
+      "cookies",
+      "vulnerabilidade de site"
+    ],
+    "ogTitle": "VulnexusAI — Verificação de segurança de sites",
+    "ogDescription": "Headers, HTTPS, certificado SSL, DNS de email e cookies — com score automático e dicas de correção em português.",
+    "twitterTitle": "VulnexusAI — Verificação de segurança de sites",
+    "twitterDescription": "Headers, HTTPS, certificado SSL, DNS de email e cookies — com score automático e dicas de correção em português.",
+    "jsonLdDescription": "Ferramenta gratuita de verificação de segurança de sites: headers HTTP, HTTPS, certificado SSL, DNS de email e cookies com score automático."
+  },
+  "nav": {
+    "verificar": "Verificar",
+    "historico": "Histórico"
+  },
+  "langSwitcher": {
+    "pt": "Português",
+    "en": "Inglês"
+  },
+  "hero": {
+    "eyebrow": "VULNEXUSAI · FERRAMENTA DE SEGURANÇA",
+    "titulo1": "Verificação de segurança",
+    "titulo2": "em um clique",
+    "sub": "Headers, HTTPS, certificado SSL, DNS de email e cookies — com score automático, comparação e dicas de correção.",
+    "placeholder": "ex.: exemplo.com.br",
+    "ariaLabel": "URL do site a verificar",
+    "verificar": "Verificar",
+    "verificando": "Verificando..."
+  },
+  "erros": {
+    "protocolo-invalido": "Somente URLs http/https são aceitas.",
+    "url-invalida": "URL inválida.",
+    "ip-privado": "Endereços privados não são permitidos.",
+    "dominio-nao-resolve": "Não foi possível resolver o domínio.",
+    "dominio-privado": "O domínio resolve para um endereço privado — não permitido.",
+    "conexao-falhou": "Não foi possível conectar ao site (tempo esgotado ou conexão recusada).",
+    "loop-redirect": "Redirecionamento em loop ou limite excedido.",
+    "falha-verificar": "Falha ao verificar o site.",
+    "rate-limit": "Muitas requisições. Tente novamente em {segundos} segundo(s).",
+    "corpo-grande": "Corpo da requisição muito grande (máx. 2048 caracteres).",
+    "corpo-invalido": "Falha ao ler o corpo da requisição.",
+    "json-invalido": "JSON inválido.",
+    "url-ausente": "Informe uma URL.",
+    "generico": "Falha ao verificar o site.",
+    "rede": "Falha de rede ao entrar em contato com o servidor.",
+    "falhaTitulo": "Não foi possível verificar:"
+  },
+  "resultado": {
+    "status": "Status {code}",
+    "copiarResumo": "Copiar resumo",
+    "copiado": "Copiado!",
+    "baixarImagem": "Baixar imagem",
+    "visaoCategoria": "Visão por categoria",
+    "pesoScore": "{peso}% do score",
+    "score": {
+      "excelente": "Excelente",
+      "bom": "Bom",
+      "regular": "Regular",
+      "fraco": "Fraco",
+      "critico": "Crítico"
+    },
+    "statusItem": {
+      "ok": "ok",
+      "aviso": "atenção",
+      "falha": "falta"
+    },
+    "comoCorrigir": "Como corrigir:",
+    "imagem": {
+      "check": "Verifique seu site: vulnexusai.com"
+    },
+    "radarAria": "Gráfico radar por categoria"
+  },
+  "compartilhar": {
+    "score": "Score: {score}/100 ({grade}) — {texto}",
+    "categoria": "{titulo}: {ok}/{total}",
+    "chamada": "Verifique seu site com a VulnexusAI em vulnexusai.com"
+  },
+  "historico": {
+    "titulo": "Histórico recente"
+  },
+  "footer": {
+    "nota": "Ferramenta educativa — não substitui uma auditoria de segurança profissional."
+  },
+  "footerLinks": {
+    "sobre": "Sobre",
+    "privacidade": "Privacidade",
+    "termos": "Termos",
+    "cookies": "Cookies"
+  },
+  "paginas": {
+    "sobre": {
+      "metaTitle": "Sobre | VulnexusAI",
+      "metaDescription": "Conheça a VulnexusAI e a ferramenta gratuita de verificação de segurança de sites: o que ela faz, o que não faz e como funciona.",
+      "eyebrow": "VULNEXUSAI · SOBRE",
+      "titulo": "Sobre a VulnexusAI",
+      "resumo": "A VulnexusAI cria ferramentas de segurança para a web. Esta é uma delas: gratuita, simples e transparente.",
+      "secoes": [
+        {
+          "h": "O que é esta ferramenta",
+          "p": "O verificador da VulnexusAI é uma ferramenta gratuita que analisa um site público e gera um score automático. Ela verifica HTTPS e certificado SSL, headers de segurança, DNS de email (SPF, DMARC e DKIM), cookies, arquivos sensíveis, conteúdo e infraestrutura."
+        },
+        {
+          "h": "O que ela faz",
+          "p": "Você digita a URL de um site e a ferramenta executa uma série de verificações automatizadas, apresentando um score de 0 a 100, uma nota de A a F e dicas de correção para cada item analisado."
+        },
+        {
+          "h": "O que ela não faz",
+          "p": "Esta é uma ferramenta educativa — ela não substitui uma auditoria de segurança profissional. O scan é automatizado, não envolve análise humana e pode não detectar todos os problemas de um site. Use o resultado como ponto de partida, não como garantia."
+        },
+        {
+          "h": "Como funciona",
+          "p": "As verificações acontecem no momento em que você digita o domínio. A URL é processada pelo servidor para gerar o scan e o histórico fica salvo apenas no seu navegador. Não armazenamos dados de verificação."
+        },
+        {
+          "h": "E o VulnexusAI Pro?",
+          "p": "O VulnexusAI Pro é o produto comercial da VulnexusAI, com varredura ampliada, monitoramento contínuo e relatórios executivos. Esta ferramenta gratuita é independente: você pode usá-la sem conta e sem nenhuma obrigação."
+        }
+      ]
+    },
+    "privacidade": {
+      "metaTitle": "Política de Privacidade | VulnexusAI",
+      "metaDescription": "Saiba como a ferramenta gratuita de verificação de segurança da VulnexusAI processa dados: URL verificada, histórico local no navegador e cookies funcionais.",
+      "eyebrow": "VULNEXUSAI · PRIVACIDADE",
+      "titulo": "Política de Privacidade",
+      "resumo": "Esta página descreve, de forma transparente, quais dados são processados quando você usa a ferramenta de verificação de segurança.",
+      "secoes": [
+        {
+          "h": "O que processamos quando você verifica um site",
+          "p": "A URL que você digita é enviada ao nosso servidor somente para gerar o scan (conexão HTTPS, headers, certificado, DNS, cookies e arquivos sensíveis). Ela não é armazenada em banco de dados."
+        },
+        {
+          "h": "Histórico",
+          "p": "O histórico recente fica salvo apenas no seu navegador, em localStorage, e nunca é enviado ao servidor. Apagar os dados do navegador remove esse histórico."
+        },
+        {
+          "h": "Limitação de uso",
+          "p": "Para evitar abuso, o servidor limita temporariamente o número de verificações por endereço IP, mantendo esse controle em memória. Ele não é persistido e não é usado para identificar ou rastrear usuários."
+        },
+        {
+          "h": "Cookies",
+          "p": "Usamos apenas cookies funcionais: um para lembrar sua preferência de idioma e um cookie técnico de sessão usado para aplicar cabeçalhos de proteção. Não usamos cookies de rastreamento, publicidade ou análise de terceiros."
+        },
+        {
+          "h": "Serviços de terceiros",
+          "p": "A verificação consulta serviços públicos do próprio site verificado (como DNS e arquivos públicos). A checagem opcional do Google Safe Browsing, quando ativada, envia somente o domínio verificado."
+        },
+        {
+          "h": "Alterações",
+          "p": "Esta política pode ser atualizada conforme a ferramenta evolui. Mudanças relevantes serão refletidas nesta página."
+        }
+      ]
+    },
+    "termos": {
+      "metaTitle": "Termos de Uso | VulnexusAI",
+      "metaDescription": "Termos de uso da ferramenta gratuita de verificação de segurança de sites da VulnexusAI: uso aceitável, limites e isenção de responsabilidade.",
+      "eyebrow": "VULNEXUSAI · TERMOS",
+      "titulo": "Termos de Uso",
+      "resumo": "Ao usar a ferramenta de verificação de segurança, você concorda com estes termos.",
+      "secoes": [
+        {
+          "h": "Uso aceitável",
+          "p": "Use a ferramenta para verificar domínios que você possui ou para os quais tem autorização. Não use a ferramenta para escanear sites de terceiros sem permissão."
+        },
+        {
+          "h": "Limite de uso",
+          "p": "Para proteger o serviço, aplicamos um limite temporário de verificações por endereço IP. Se o limite for atingido, você verá um aviso com o tempo para tentar novamente."
+        },
+        {
+          "h": "Serviço educacional",
+          "p": "A ferramenta é fornecida no estado em que se encontra, com finalidade educativa. Não garantimos precisão completa das verificações nem a ausência de erros."
+        },
+        {
+          "h": "Isenção de responsabilidade",
+          "p": "As decisões tomadas com base no score ou nos resultados são de sua responsabilidade. A VulnexusAI não se responsabiliza por danos decorrentes do uso da ferramenta ou de decisões baseadas nos resultados."
+        },
+        {
+          "h": "Gratuidade",
+          "p": "O uso da ferramenta é gratuito. Não vendemos dados verificados nem os utilizamos para fins comerciais."
+        }
+      ]
+    },
+    "cookies": {
+      "metaTitle": "Política de Cookies | VulnexusAI",
+      "metaDescription": "Política de cookies da ferramenta de verificação de segurança da VulnexusAI: apenas cookies funcionais, sem rastreamento.",
+      "eyebrow": "VULNEXUSAI · COOKIES",
+      "titulo": "Política de Cookies",
+      "resumo": "Esta ferramenta não usa cookies de rastreamento. Veja exatamente o que existe.",
+      "secoes": [
+        {
+          "h": "Cookies funcionais",
+          "p": "Quando você troca o idioma do site, um cookie registra sua preferência para as próximas visitas. Também definimos um cookie técnico de sessão, usado para aplicar cabeçalhos de proteção, como a Content Security Policy. Nenhum deles coleta dados para perfilamento."
+        },
+        {
+          "h": "O que não usamos",
+          "p": "Não usamos cookies de publicidade, cookies de análise de terceiros, pixels de rastreamento nem serviços de marketing."
+        },
+        {
+          "h": "localStorage",
+          "p": "Seu histórico de verificações fica armazenado no localStorage do navegador — um armazenamento local do seu dispositivo, que não é enviado ao servidor e não é considerado um cookie."
+        },
+        {
+          "h": "Seus controles",
+          "p": "Você pode apagar cookies e dados locais pelas configurações do navegador a qualquer momento. Isso não impede o uso da ferramenta; apenas remove a preferência de idioma e o histórico local."
+        }
+      ]
+    }
+  },
+  "categorias": {
+    "https": "HTTPS e Certificado",
+    "headers": "Headers de Segurança",
+    "dns": "DNS e Email",
+    "cookies": "Cookies",
+    "arquivos": "Arquivos Sensíveis",
+    "conteudo": "Conteúdo e Metadados",
+    "infra": "Infraestrutura"
+  },
+  "checks": {
+    "https-ativo": {
+      "titulo": "Conexão HTTPS",
+      "descricao": "O site deve responder por HTTPS para criptografar o tráfego.",
+      "detalhe": {
+        "ok": "{hostname}",
+        "falha": "O site não ofereceu HTTPS."
+      },
+      "dica": "Configure um certificado TLS (Let''s Encrypt, Cloudflare ou do seu provedor) e sirva o site somente por HTTPS."
+    },
+    "redirect-http": {
+      "titulo": "Redirect HTTP → HTTPS",
+      "descricao": "Visitas por HTTP devem ser redirecionadas automaticamente para HTTPS.",
+      "detalhe": {
+        "ok": "Redirecionamento {statusCode} detectado.",
+        "aviso": "Nenhum redirecionamento automático detectado na cadeia."
+      },
+      "dica": "Configure um redirect 301 de http:// para https:// no servidor ou na plataforma de hospedagem."
+    },
+    "certificado": {
+      "titulo": "Certificado SSL",
+      "descricao": "O certificado deve ser válido, não expirado e emitido por uma autoridade confiável.",
+      "detalhe": {
+        "ok": "Válido até {expiraEm} ({dias} dias) — {emissor}",
+        "autoassinado": "Certificado auto-assinado — navegadores exibirão aviso.",
+        "invalido": "Certificado inválido ou expirado. Emitente: {emissor}"
+      },
+      "dica": "Renove o certificado antes do vencimento ou troque para um emitido por autoridade confiável (Let''s Encrypt)."
+    },
+    "tls-versao": {
+      "titulo": "Protocolo TLS",
+      "descricao": "TLS 1.0 e 1.1 são obsoletos e devem ser desativados (deprecados em 2020).",
+      "detalhe": {
+        "base": "Negociado: {protocolo}.",
+        "tls10": " TLS 1.0 ativo.",
+        "tls11": " TLS 1.1 ativo."
+      },
+      "dica": "Desative TLS 1.0/1.1 e mantenha TLS 1.2 e 1.3 habilitados no servidor."
+    },
+    "hsts": {
+      "titulo": "Strict-Transport-Security",
+      "descricao": "HSTS — força conexões HTTPS e impede downgrade.",
+      "detalhe": {
+        "ausente": "Header ausente."
+      },
+      "dica": "Adicione `Strict-Transport-Security: max-age=31536000; includeSubDomains` em todas as respostas HTTPS."
+    },
+    "csp": {
+      "titulo": "Content-Security-Policy",
+      "descricao": "CSP — controla quais recursos o navegador pode carregar.",
+      "detalhe": {
+        "ausente": "Header ausente."
+      },
+      "dica": "Defina uma política CSP (ex.: `default-src 'self'`) e ajuste conforme os recursos do site."
+    },
+    "xframe": {
+      "titulo": "X-Frame-Options",
+      "descricao": "Impede que o site seja exibido dentro de iframes de terceiros (clickjacking).",
+      "detalhe": {
+        "ausente": "Header ausente."
+      },
+      "dica": "Adicione `X-Frame-Options: SAMEORIGIN` (ou use a diretiva frame-ancestors do CSP)."
+    },
+    "xcontenttype": {
+      "titulo": "X-Content-Type-Options",
+      "descricao": "Impede MIME sniffing do navegador.",
+      "detalhe": {
+        "ausente": "Header ausente."
+      },
+      "dica": "Adicione `X-Content-Type-Options: nosniff`."
+    },
+    "referrer": {
+      "titulo": "Referrer-Policy",
+      "descricao": "Controla quais informações são enviadas no header Referer.",
+      "detalhe": {
+        "ausente": "Header ausente."
+      },
+      "dica": "Adicione `Referrer-Policy: strict-origin-when-cross-origin`."
+    },
+    "permissions": {
+      "titulo": "Permissions-Policy",
+      "descricao": "Limita acesso a APIs do navegador (câmera, GPS, etc.).",
+      "detalhe": {
+        "ausente": "Header ausente."
+      },
+      "dica": "Adicione `Permissions-Policy` restringindo geolocation, camera, microphone, etc."
+    },
+    "spf": {
+      "titulo": "SPF",
+      "descricao": "SPF — autoriza quais servidores podem enviar email em nome do domínio.",
+      "detalhe": {
+        "ok": "Registro SPF encontrado ({quantidade} TXT).",
+        "ausente": "Nenhum registro SPF encontrado."
+      },
+      "dica": "Publique um registro TXT como `v=spf1 include:_spf.provedor ~all` no DNS do domínio."
+    },
+    "dmarc": {
+      "titulo": "DMARC",
+      "descricao": "DMARC — política de como tratar emails forjados com seu domínio.",
+      "detalhe": {
+        "ok": "Registro DMARC publicado.",
+        "ausente": "Nenhum registro DMARC (_dmarc) encontrado."
+      },
+      "dica": "Publique `_dmarc.<dominio> TXT v=DMARC1; p=none; rua=mailto:seu@email` e depois evolua a política."
+    },
+    "dkim": {
+      "titulo": "DKIM",
+      "descricao": "DKIM — assinatura digital que valida a autenticidade dos emails.",
+      "detalhe": {
+        "ok": "Seletor(es) encontrado(s): {seletores}.",
+        "ausente": "Nenhum seletor DKIM comum encontrado."
+      },
+      "dica": "Configure DKIM no seu provedor de email e publique a chave pública em `<seletor>._domainkey.<dominio>`."
+    },
+    "cookies": {
+      "titulo": "Cookies de sessão",
+      "descricao": "Cookies de sessão devem usar atributos de segurança.",
+      "detalhe": {
+        "ok": "Nenhum cookie definido na cadeia de resposta."
+      }
+    },
+    "cookies-secure": {
+      "titulo": "Atributo Secure",
+      "descricao": "Cookies devem ser enviados somente por HTTPS.",
+      "detalhe": {
+        "ok": "{ok}/{total} cookies com Secure."
+      },
+      "dica": "Adicione `Secure` a todos os cookies."
+    },
+    "cookies-httponly": {
+      "titulo": "Atributo HttpOnly",
+      "descricao": "Impede acesso ao cookie via JavaScript (mitiga XSS).",
+      "detalhe": {
+        "ok": "{ok}/{total} cookies com HttpOnly."
+      },
+      "dica": "Adicione `HttpOnly` a cookies que não precisam ser lidos por JavaScript."
+    },
+    "cookies-samesite": {
+      "titulo": "SameSite",
+      "descricao": "Limita envio do cookie em requisições de outros sites (CSRF).",
+      "detalhe": {
+        "ok": "{ok}/{total} cookies com SameSite."
+      },
+      "dica": "Adicione `SameSite=Lax` (ou `Strict` quando possível) aos cookies."
+    },
+    "env": {
+      "titulo": "Arquivo .env exposto",
+      "descricao": "O arquivo {caminho} não deve ser acessível publicamente.",
+      "detalhe": {
+        "falha": "O arquivo {caminho} está acessível publicamente.",
+        "ok": "Sem acesso público a {caminho}.",
+        "aviso": "Não foi possível confirmar o acesso a {caminho}."
+      },
+      "dica": {
+        "falha": "Remova {caminho} do servidor público ou bloqueie o acesso via regras do servidor (nginx/apache/CDN)."
+      }
+    },
+    "git-config": {
+      "titulo": "Arquivo .git/config exposto",
+      "descricao": "O arquivo {caminho} não deve ser acessível publicamente.",
+      "detalhe": {
+        "falha": "O arquivo {caminho} está acessível publicamente.",
+        "ok": "Sem acesso público a {caminho}.",
+        "aviso": "Não foi possível confirmar o acesso a {caminho}."
+      },
+      "dica": {
+        "falha": "Remova {caminho} do servidor público ou bloqueie o acesso via regras do servidor (nginx/apache/CDN)."
+      }
+    },
+    "git-head": {
+      "titulo": "Arquivo .git/HEAD exposto",
+      "descricao": "O arquivo {caminho} não deve ser acessível publicamente.",
+      "detalhe": {
+        "falha": "O arquivo {caminho} está acessível publicamente.",
+        "ok": "Sem acesso público a {caminho}.",
+        "aviso": "Não foi possível confirmar o acesso a {caminho}."
+      },
+      "dica": {
+        "falha": "Remova {caminho} do servidor público ou bloqueie o acesso via regras do servidor (nginx/apache/CDN)."
+      }
+    },
+    "wp-backup": {
+      "titulo": "Backup wp-config exposto",
+      "descricao": "O arquivo {caminho} não deve ser acessível publicamente.",
+      "detalhe": {
+        "falha": "O arquivo {caminho} está acessível publicamente.",
+        "ok": "Sem acesso público a {caminho}.",
+        "aviso": "Não foi possível confirmar o acesso a {caminho}."
+      },
+      "dica": {
+        "falha": "Remova {caminho} do servidor público ou bloqueie o acesso via regras do servidor (nginx/apache/CDN)."
+      }
+    },
+    "ds-store": {
+      "titulo": "Arquivo .DS_Store exposto",
+      "descricao": "O arquivo {caminho} não deve ser acessível publicamente.",
+      "detalhe": {
+        "falha": "O arquivo {caminho} está acessível publicamente.",
+        "ok": "Sem acesso público a {caminho}.",
+        "aviso": "Não foi possível confirmar o acesso a {caminho}."
+      },
+      "dica": {
+        "falha": "Remova {caminho} do servidor público ou bloqueie o acesso via regras do servidor (nginx/apache/CDN)."
+      }
+    },
+    "config-php": {
+      "titulo": "Backup config.php exposto",
+      "descricao": "O arquivo {caminho} não deve ser acessível publicamente.",
+      "detalhe": {
+        "falha": "O arquivo {caminho} está acessível publicamente.",
+        "ok": "Sem acesso público a {caminho}.",
+        "aviso": "Não foi possível confirmar o acesso a {caminho}."
+      },
+      "dica": {
+        "falha": "Remova {caminho} do servidor público ou bloqueie o acesso via regras do servidor (nginx/apache/CDN)."
+      }
+    },
+    "robots": {
+      "titulo": "robots.txt",
+      "descricao": "O arquivo {caminho} deve existir e responder com status 200.",
+      "detalhe": {
+        "ok": "{caminho} encontrado (status 200).",
+        "ausente": "{caminho} ausente (status {statusCode}).",
+        "semResposta": "{caminho} ausente (sem resposta)."
+      },
+      "dica": {
+        "ausente": "Crie {caminho} na raiz do site para orientar crawlers e reportar falhas de segurança."
+      }
+    },
+    "sitemap": {
+      "titulo": "sitemap.xml",
+      "descricao": "O arquivo {caminho} deve existir e responder com status 200.",
+      "detalhe": {
+        "ok": "{caminho} encontrado (status 200).",
+        "ausente": "{caminho} ausente (status {statusCode}).",
+        "semResposta": "{caminho} ausente (sem resposta)."
+      },
+      "dica": {
+        "ausente": "Crie {caminho} na raiz do site para orientar crawlers e reportar falhas de segurança."
+      }
+    },
+    "security-txt": {
+      "titulo": "security.txt",
+      "descricao": "O arquivo {caminho} deve existir e responder com status 200.",
+      "detalhe": {
+        "ok": "{caminho} encontrado (status 200).",
+        "ausente": "{caminho} ausente (status {statusCode}).",
+        "semResposta": "{caminho} ausente (sem resposta)."
+      },
+      "dica": {
+        "ausente": "Crie {caminho} na raiz do site para orientar crawlers e reportar falhas de segurança."
+      }
+    },
+    "caa": {
+      "titulo": "Registro CAA",
+      "descricao": "CAA — restringe quais autoridades podem emitir certificados para o domínio.",
+      "detalhe": {
+        "ok": "{registros}",
+        "ausente": "Nenhum registro CAA publicado."
+      },
+      "dica": {
+        "ausente": "Publique um registro CAA no DNS, ex.: `CAA 0 issue \"letsencrypt.org\"`."
+      }
+    },
+    "safe-browsing": {
+      "titulo": "Google Safe Browsing",
+      "descricao": "Verifica se o site consta em listas de malware e engenharia social do Google.",
+      "detalhe": {
+        "ok": "Nenhuma ameaça listada no Google Safe Browsing.",
+        "sem-chave": "Verificação opcional — chave da API do Google Safe Browsing não configurada.",
+        "falha-consulta": "Falha na consulta ao Google Safe Browsing.",
+        "ameaca": "O site consta em listas de ameaças do Google Safe Browsing.",
+        "sem-conexao": "Não foi possível consultar o Google Safe Browsing."
+      },
+      "dica": {
+        "ameaca": "Revise o site no Google Search Console (Segurança e ações manuais) e solicite reavaliação."
+      }
+    }
+  }
+}
