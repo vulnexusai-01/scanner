@@ -56,6 +56,29 @@ function normalizaUrl(input: string): URL {
   return u;
 }
 
+function tinhaProtocolo(input: string): boolean {
+  return /^https?:\/\//i.test(input.trim());
+}
+
+async function testaRedirectHttp(url: URL): Promise<{ status: number; de: string; para: string } | null> {
+  const httpUrl = new URL(url.href);
+  httpUrl.protocol = "http:";
+  try {
+    const res = await fetch(httpUrl, {
+      redirect: "manual",
+      method: "HEAD",
+      headers: { "user-agent": "VerificaSeguranca/1.0 (+scanner de segurança)" },
+    });
+    const loc = res.headers.get("location");
+    if (res.status >= 300 && res.status < 400 && loc && loc.toLowerCase().startsWith("https:")) {
+      return { status: res.status, de: httpUrl.href, para: loc };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 async function validaHost(url: URL): Promise<void> {
   const host = url.hostname.replace(/^\[|\]$/g, "");
   if (net.isIP(host)) {
@@ -260,6 +283,13 @@ export async function verificarSite(input: string): Promise<ResultadoCheck> {
     de: r.url,
     para: r.headers.get("location") || "",
   }));
+
+  if (!tinhaProtocolo(input)) {
+    const httpRedirect = await testaRedirectHttp(url);
+    if (httpRedirect && !redirects.some(r => r.de.startsWith("http:"))) {
+      redirects.unshift(httpRedirect);
+    }
+  }
 
   const https = final.url.startsWith("https:");
   const httpParaHttps = https && redirects.some(r => r.de.startsWith("http:") && r.para.startsWith("https:"));
