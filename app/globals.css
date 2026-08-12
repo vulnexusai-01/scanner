@@ -62,17 +62,9 @@ body {
   color: var(--fg);
 }
 
-.logo-badge {
-  width: 34px;
-  height: 34px;
+.logo-img {
   border-radius: 9px;
-  background: linear-gradient(135deg, var(--azul), #7c3aed);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 13px;
-  letter-spacing: 0.02em;
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3), 0 4px 16px rgba(59, 130, 246, 0.25);
 }
 
 .logo-txt span {
@@ -94,11 +86,23 @@ body {
   padding: 40px 0 24px;
 }
 
+.eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--azul);
+  margin-bottom: 14px;
+}
+
 .hero h1 {
-  font-size: 36px;
+  font-size: 38px;
   font-weight: 800;
   letter-spacing: -0.02em;
-  background: linear-gradient(90deg, #fff, #93c5fd);
+  line-height: 1.15;
+}
+
+.hero h1 .grad {
+  background: linear-gradient(90deg, var(--azul), #a78bfa);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -504,6 +508,20 @@ body {
   color: var(--muted);
   font-size: 13px;
   padding-top: 32px;
+  border-top: 1px solid var(--border);
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--fg);
 }
 
 @media (max-width: 760px) {

@@ -210,7 +210,7 @@ export default function Home() {
         return [`${c.titulo}: ${ok}/${c.itens.length}`];
       }),
       "",
-      "Verifique seu site em vulnexusai.com",
+      "Verifique seu site com a VulnexusAI em vulnexusai.com",
     ];
     const texto = linhas.join("\n");
     try {
@@ -226,8 +226,8 @@ export default function Home() {
     <main className="page">
       <header className="topo">
         <a href="/" className="logo">
-          <span className="logo-badge">VS</span>
-          <span className="logo-txt">Verifica<span>Seguranca</span></span>
+          <img src="/vulnexusai.svg" alt="VulnexusAI" className="logo-img" width={34} height={34} />
+          <span className="logo-txt">Vulnexus<span>AI</span></span>
         </a>
         <nav>
           <a href="#verificar" className="nav-link">Verificar</a>
@@ -236,9 +236,10 @@ export default function Home() {
       </header>
 
       <section className="hero" id="verificar">
-        <h1>Verificação básica de segurança</h1>
+        <p className="eyebrow">VULNEXUSAI · FERRAMENTA DE SEGURANÇA</p>
+        <h1>Verificação de segurança<br /><span className="grad">em um clique</span></h1>
         <p className="sub">
-          Headers, HTTPS, certificado SSL, DNS de email e cookies — com score automático e dicas de correção.
+          Headers, HTTPS, certificado SSL, DNS de email e cookies — com score automático, comparação e dicas de correção.
         </p>
         <form
           className="form"
@@ -326,7 +327,11 @@ export default function Home() {
       )}
 
       <footer className="footer">
-        Ferramenta educativa — não substitui uma auditoria de segurança profissional.
+        <div className="footer-logo">
+          <img src="/vulnexusai.svg" alt="VulnexusAI" width={22} height={22} />
+          <span>VulnexusAI</span>
+        </div>
+        <p>Ferramenta educativa — não substitui uma auditoria de segurança profissional.</p>
       </footer>
     </main>
   );

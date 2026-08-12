@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "VerificaSeguranca — Verificação básica de segurança de sites",
+  title: "VulnexusAI — Verificação de segurança de sites",
   description:
-    "Verifique headers de segurança HTTP, HTTPS e certificado SSL de qualquer site com um score automático.",
+    "Verifique headers de segurança HTTP, HTTPS, certificado SSL, DNS de email e cookies com score automático da VulnexusAI.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
