@@ -252,7 +252,7 @@ export default function Home() {
             type="text"
             value={input}
             onChange={e => setInput(e.target.value)}
-            placeholder="ex.: mareagora.com.br"
+            placeholder="ex.: exemplo.com.br"
             aria-label="URL do site a verificar"
             disabled={carregando}
           />
