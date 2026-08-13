@@ -1,8 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { LookupAddress } from "node:dns";
-import { isIPPrivado, normalizaUrl, resolveHostPublico, statusDosItens, VerificadorErro, type ItemCheck } from "./verificador";
+import { isIPPrivado, normalizaUrl, resolveHostPublico, statusDosItens, checaCors, VerificadorErro, type ItemCheck } from "./verificador";
 
-const { lookupMock } = vi.hoisted(() => ({ lookupMock: vi.fn() }));
+const { lookupMock, requestMock } = vi.hoisted(() => ({ lookupMock: vi.fn(), requestMock: vi.fn() }));
 
 vi.mock("node:dns/promises", () => ({
   default: {
@@ -11,6 +11,9 @@ vi.mock("node:dns/promises", () => ({
     resolveCaa: vi.fn(),
   },
 }));
+
+vi.mock("node:http", () => ({ default: { request: requestMock } }));
+vi.mock("node:https", () => ({ default: { request: requestMock } }));
 
 describe("isIPPrivado", () => {
   it("bloqueia IPv4 privados conhecidos", () => {
@@ -239,5 +242,72 @@ describe("statusDosItens", () => {
 
   it("retorna 100 quando só há avisos", () => {
     expect(statusDosItens(itens("aviso", "aviso"))).toBe(100);
+  });
+});
+
+describe("checaCors", () => {
+  beforeEach(() => {
+    lookupMock.mockReset();
+    lookupMock.mockResolvedValue([{ address: "1.1.1.1", family: 4 }] as LookupAddress[]);
+    requestMock.mockReset();
+  });
+
+  function mockaResposta(headers: Record<string, string>, status = 200) {
+    requestMock.mockImplementation(
+      (
+        _url: unknown,
+        _opcoes: unknown,
+        callback: (res: { statusCode: number; headers: Record<string, string>; resume: () => void }) => void
+      ) => {
+        callback({ statusCode: status, headers, resume: () => {} });
+        return { on: () => {}, end: () => {} };
+      }
+    );
+  }
+
+  it("marca como falha ACAO=* com ACAC=true", async () => {
+    mockaResposta({ "access-control-allow-origin": "*", "access-control-allow-credentials": "true" });
+    const itens = await checaCors("https://exemplo.com");
+    expect(itens.find(i => i.id === "cors-wildcard-credentials")?.status).toBe("falha");
+  });
+
+  it("marca como ok ACAO=* sem credenciais e registra o wildcard público", async () => {
+    mockaResposta({ "access-control-allow-origin": "*" });
+    const itens = await checaCors("https://exemplo.com");
+    expect(itens.find(i => i.id === "cors-wildcard-credentials")?.status).toBe("ok");
+    const publico = itens.find(i => i.id === "cors-wildcard-publico");
+    expect(publico?.status).toBe("ok");
+    expect(publico?.dados?.valor).toBe("*");
+  });
+
+  it("marca como aviso quando a origem enviada é refletida", async () => {
+    mockaResposta({ "access-control-allow-origin": "https://origin-de-teste-vulnexusai.invalid" });
+    const itens = await checaCors("https://exemplo.com");
+    const reflexao = itens.find(i => i.id === "cors-origin-reflection");
+    expect(reflexao?.status).toBe("aviso");
+    expect(reflexao?.dados?.refletido).toBe(true);
+  });
+
+  it("marca como ok quando a origem não é refletida", async () => {
+    mockaResposta({ "access-control-allow-origin": "https://app.exemplo.com" });
+    const itens = await checaCors("https://exemplo.com");
+    expect(itens.find(i => i.id === "cors-origin-reflection")?.status).toBe("ok");
+  });
+
+  it("retorna cors-nao-configurado ok quando o header ACAO está ausente", async () => {
+    mockaResposta({});
+    await expect(checaCors("https://exemplo.com")).resolves.toEqual([{ id: "cors-nao-configurado", status: "ok" }]);
+  });
+
+  it("retorna aviso quando a requisição falha", async () => {
+    requestMock.mockImplementation(() => {
+      return {
+        on: (_evento: string, cb: () => void) => {
+          cb();
+        },
+        end: () => {},
+      };
+    });
+    await expect(checaCors("https://exemplo.com")).resolves.toEqual([{ id: "cors-indisponivel", status: "aviso" }]);
   });
 });

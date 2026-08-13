@@ -131,6 +131,12 @@ function detalheItem(t: Traduz, item: ItemCheck, locale: string): string {
       return item.dados?.registros ? item.dados.registros : t(`${base}.detalhe.ausente`);
     case "safe-browsing":
       return t(`${base}.detalhe.${item.dados?.estado ?? item.status}`);
+    case "cors-wildcard-credentials":
+    case "cors-origin-reflection":
+    case "cors-wildcard-publico":
+    case "cors-nao-configurado":
+    case "cors-indisponivel":
+      return t(`${base}.detalhe.${item.status}`, p);
     default:
       return "";
   }

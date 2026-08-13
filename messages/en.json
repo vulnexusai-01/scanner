@@ -238,6 +238,7 @@
     "headers": "Security Headers",
     "dns": "DNS & Email",
     "cookies": "Cookies",
+    "cors": "CORS",
     "arquivos": "Sensitive Files",
     "conteudo": "Content & Metadata",
     "infra": "Infrastructure"
@@ -519,6 +520,48 @@
       "dica": {
         "ameaca": "Review the site in Google Search Console (Security and manual actions) and request re-evaluation."
       }
+    },
+    "cors-wildcard-credentials": {
+      "titulo": "CORS with credentials",
+      "descricao": "Combining Access-Control-Allow-Origin with Access-Control-Allow-Credentials is a dangerous configuration.",
+      "detalhe": {
+        "falha": "Access-Control-Allow-Origin: * with Access-Control-Allow-Credentials: true.",
+        "ok": "No dangerous wildcard-with-credentials combination."
+      },
+      "dica": "Never combine Access-Control-Allow-Origin: * with Access-Control-Allow-Credentials: true. Restrict allowed origins explicitly."
+    },
+    "cors-origin-reflection": {
+      "titulo": "CORS origin reflection",
+      "descricao": "The server should not reflect back any Origin header it receives.",
+      "detalhe": {
+        "aviso": "The server reflected the sent origin ({valor}).",
+        "ok": "The server does not reflect the sent origin."
+      },
+      "dica": "Configure a fixed allowlist of origins instead of reflecting the Origin header."
+    },
+    "cors-wildcard-publico": {
+      "titulo": "Open CORS (public resources)",
+      "descricao": "Access-Control-Allow-Origin: * without credentials is acceptable for public resources.",
+      "detalhe": {
+        "ok": "Open CORS ({valor}) — acceptable for public resources."
+      },
+      "dica": "For public resources without credentials, a wildcard is acceptable."
+    },
+    "cors-nao-configurado": {
+      "titulo": "CORS",
+      "descricao": "No CORS headers configured — the browser's secure default behavior.",
+      "detalhe": {
+        "ok": "No CORS headers — the browser applies the default policy (no cross-origin access)."
+      },
+      "dica": "Configure CORS only if the site must be accessed from other origins."
+    },
+    "cors-indisponivel": {
+      "titulo": "CORS",
+      "descricao": "Could not assess the CORS configuration.",
+      "detalhe": {
+        "aviso": "Could not verify the CORS headers."
+      },
+      "dica": "Try again later."
     }
   }
 }

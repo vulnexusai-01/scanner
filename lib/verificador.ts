@@ -26,6 +26,7 @@ export type ItemDados = {
   caminho?: string;
   registros?: string;
   estado?: string;
+  refletido?: boolean;
 };
 
 export type ItemCheck = {
@@ -210,7 +211,12 @@ function lookupFixado(ip: string): net.LookupFunction {
   };
 }
 
-function requisicaoPinada(url: URL, ip: string, timeoutMs = TIMEOUT_REQUISICAO_MS): Promise<RespostaPinada> {
+function requisicaoPinada(
+  url: URL,
+  ip: string,
+  timeoutMs = TIMEOUT_REQUISICAO_MS,
+  headersExtras: Record<string, string> = {}
+): Promise<RespostaPinada> {
   return new Promise((resolve, reject) => {
     const lib = url.protocol === "https:" ? https : http;
     const req = lib.request(
@@ -222,6 +228,7 @@ function requisicaoPinada(url: URL, ip: string, timeoutMs = TIMEOUT_REQUISICAO_M
         headers: {
           host: url.host,
           "user-agent": USER_AGENT,
+          ...headersExtras,
         },
       },
       res => {
@@ -521,6 +528,46 @@ async function checaSafeBrowsing(url: string): Promise<{ status: StatusItem; est
   }
 }
 
+const ORIGEM_TESTE_CORS = "https://origin-de-teste-vulnexusai.invalid";
+
+export async function checaCors(urlBase: string): Promise<ItemCheck[]> {
+  try {
+    const url = new URL(urlBase);
+    const ip = await resolveHostPublico(url);
+    const res = await requisicaoPinada(url, ip, TIMEOUT_REQUISICAO_MS, { origin: ORIGEM_TESTE_CORS });
+
+    const acao = res.headers.get("access-control-allow-origin")?.trim();
+    const acac = res.headers.get("access-control-allow-credentials")?.trim().toLowerCase();
+    const acacVerdadeiro = acac === "true";
+
+    if (!acao) {
+      return [{ id: "cors-nao-configurado", status: "ok" }];
+    }
+
+    const itens: ItemCheck[] = [];
+
+    itens.push({
+      id: "cors-wildcard-credentials",
+      status: acao === "*" && acacVerdadeiro ? "falha" : "ok",
+      dados: { valor: acao },
+    });
+
+    itens.push({
+      id: "cors-origin-reflection",
+      status: acao === ORIGEM_TESTE_CORS ? "aviso" : "ok",
+      dados: { valor: acao, refletido: acao === ORIGEM_TESTE_CORS },
+    });
+
+    if (acao === "*" && !acacVerdadeiro) {
+      itens.push({ id: "cors-wildcard-publico", status: "ok", dados: { valor: "*" } });
+    }
+
+    return itens;
+  } catch {
+    return [{ id: "cors-indisponivel", status: "aviso" }];
+  }
+}
+
 export async function verificarSite(input: string): Promise<ResultadoCheck> {
   const url = normalizaUrl(input);
 
@@ -551,11 +598,12 @@ export async function verificarSite(input: string): Promise<ResultadoCheck> {
   const hostname = new URL(final.url).hostname;
   const base = dominioBase(hostname);
 
-  const [infoTls, spf, dmarc, dkim] = await Promise.all([
+  const [infoTls, spf, dmarc, dkim, corsItens] = await Promise.all([
     https ? checaTls(hostname) : Promise.resolve(undefined),
     checaSpf(base),
     checaDmarc(base),
     checaDkim(base),
+    checaCors(final.url),
   ]);
 
   const categorias: Categoria[] = [];
@@ -661,6 +709,9 @@ export async function verificarSite(input: string): Promise<ResultadoCheck> {
   }
   categorias.push({ id: "cookies", peso: 5, itens: itensCookies });
 
+  // --- CORS (peso 5) ---
+  categorias.push({ id: "cors", peso: 5, itens: corsItens });
+
   // --- Arquivos Sensíveis (peso 15) ---
   const ARQUIVOS_SENSIVEIS: Array<{ id: string; caminho: string }> = [
     { id: "env", caminho: "/.env" },
@@ -697,7 +748,7 @@ export async function verificarSite(input: string): Promise<ResultadoCheck> {
       dados: { caminho: r.caminho, statusCode: res.status },
     };
   });
-  categorias.push({ id: "conteudo", peso: 10, itens: itensRecursos });
+  categorias.push({ id: "conteudo", peso: 7, itens: itensRecursos });
 
   // --- Infraestrutura (peso 5) ---
   const [caa, safeBrowsing] = await Promise.all([checaCaa(base), checaSafeBrowsing(final.url)]);
@@ -717,7 +768,7 @@ export async function verificarSite(input: string): Promise<ResultadoCheck> {
       dados: { estado: safeBrowsing.estado },
     },
   ];
-  categorias.push({ id: "infra", peso: 5, itens: itensInfra });
+  categorias.push({ id: "infra", peso: 3, itens: itensInfra });
 
   // --- Score ---
   const totalPeso = categorias.reduce((acc, c) => acc + c.peso, 0);

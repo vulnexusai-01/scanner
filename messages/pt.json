@@ -238,6 +238,7 @@
     "headers": "Headers de Segurança",
     "dns": "DNS e Email",
     "cookies": "Cookies",
+    "cors": "CORS",
     "arquivos": "Arquivos Sensíveis",
     "conteudo": "Conteúdo e Metadados",
     "infra": "Infraestrutura"
@@ -519,6 +520,48 @@
       "dica": {
         "ameaca": "Revise o site no Google Search Console (Segurança e ações manuais) e solicite reavaliação."
       }
+    },
+    "cors-wildcard-credentials": {
+      "titulo": "CORS com credenciais",
+      "descricao": "A combinação de Access-Control-Allow-Origin com Access-Control-Allow-Credentials é uma configuração perigosa.",
+      "detalhe": {
+        "falha": "Access-Control-Allow-Origin: * com Access-Control-Allow-Credentials: true.",
+        "ok": "Sem combinação perigosa de wildcard com credenciais."
+      },
+      "dica": "Nunca combine Access-Control-Allow-Origin: * com Access-Control-Allow-Credentials: true. Restrinja as origens permitidas explicitamente."
+    },
+    "cors-origin-reflection": {
+      "titulo": "Reflexão de origem no CORS",
+      "descricao": "O servidor não deve refletir de volta qualquer origem enviada no header Origin.",
+      "detalhe": {
+        "aviso": "O servidor refletiu a origem enviada ({valor}).",
+        "ok": "O servidor não reflete a origem enviada."
+      },
+      "dica": "Configure uma lista fixa de origens permitidas em vez de refletir o header Origin."
+    },
+    "cors-wildcard-publico": {
+      "titulo": "CORS aberto (recursos públicos)",
+      "descricao": "Access-Control-Allow-Origin: * sem credenciais é aceitável para recursos públicos.",
+      "detalhe": {
+        "ok": "CORS aberto ({valor}) — aceitável para recursos públicos."
+      },
+      "dica": "Para recursos públicos sem credenciais, o wildcard é aceitável."
+    },
+    "cors-nao-configurado": {
+      "titulo": "CORS",
+      "descricao": "Sem headers CORS configurados — comportamento padrão seguro do navegador.",
+      "detalhe": {
+        "ok": "Sem headers CORS — o navegador aplica a política padrão (sem acesso cross-origin)."
+      },
+      "dica": "Configure CORS somente se o site precisa ser acessado por outras origens."
+    },
+    "cors-indisponivel": {
+      "titulo": "CORS",
+      "descricao": "Não foi possível avaliar a configuração de CORS.",
+      "detalhe": {
+        "aviso": "Não foi possível verificar os headers CORS."
+      },
+      "dica": "Tente novamente mais tarde."
     }
   }
 }
