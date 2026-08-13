@@ -578,12 +578,37 @@ export default function Scanner() {
           </div>
           <div className="metric">
             <svg viewBox="0 0 24 24" fill="none" strokeWidth="2">
-              <path d="M4 4h16v16H4z" />
-              <path d="M4 9h16" />
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+              <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
             </svg>
-            {t("hero.metricas.relatorio")}
+            {t("hero.metricas.monitoramento")}
           </div>
         </div>
+      </section>
+
+      <section className="monitor-cta" id="monitorar-cta">
+        <p className="eyebrow">
+          <span className="dot" />
+          {t("monitorCta.eyebrow")}
+        </p>
+        <h2>{t("monitorCta.titulo")}</h2>
+        <p className="monitor-cta-sub">{t("monitorCta.sub")}</p>
+        <ul className="monitor-cta-itens">
+          <li>{t("monitorCta.item1")}</li>
+          <li>{t("monitorCta.item2")}</li>
+          <li>{t("monitorCta.item3")}</li>
+        </ul>
+        <button
+          type="button"
+          className="monitor-cta-btn"
+          onClick={() => {
+            const el = document.getElementById("input-url");
+            el?.scrollIntoView({ behavior: "smooth", block: "center" });
+            el?.focus();
+          }}
+        >
+          {t("monitorCta.botao")}
+        </button>
       </section>
 
       {erro && (

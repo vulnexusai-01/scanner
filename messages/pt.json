@@ -29,8 +29,17 @@
     "metricas": {
       "tempo": "Score em segundos",
       "cadastro": "Sem cadastro",
-      "relatorio": "Relatório comparável"
+      "monitoramento": "Alertas no Discord ou Slack"
     }
+  },
+  "monitorCta": {
+    "eyebrow": "VULNEXUSAI · MONITORAMENTO",
+    "titulo": "Acompanhe a segurança do seu site todo dia",
+    "sub": "Checagem automática diária. Se o score cair ou qualquer item piorar, você é avisado na hora no Discord ou no Slack — sem esforço manual.",
+    "item1": "Verificação diária automática às 06:00 UTC",
+    "item2": "Alerta quando o score cair ou um item piorar",
+    "item3": "Webhook do Discord ou Slack, sem cadastro",
+    "botao": "Ativar monitoramento"
   },
   "faq": {
     "titulo": "Perguntas frequentes",

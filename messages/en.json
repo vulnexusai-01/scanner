@@ -29,8 +29,17 @@
     "metricas": {
       "tempo": "Score in seconds",
       "cadastro": "No signup",
-      "relatorio": "Comparable report"
+      "monitoramento": "Alerts on Discord or Slack"
     }
+  },
+  "monitorCta": {
+    "eyebrow": "VULNEXUSAI · MONITORING",
+    "titulo": "Keep an eye on your site's security every day",
+    "sub": "Automatic daily checks. When the score drops or any item gets worse, you get notified right away on Discord or Slack — no extra manual work.",
+    "item1": "Automatic daily check at 06:00 UTC",
+    "item2": "Alert when the score drops or an item gets worse",
+    "item3": "Discord or Slack webhook, no signup",
+    "botao": "Enable monitoring"
   },
   "faq": {
     "titulo": "Frequently asked questions",
