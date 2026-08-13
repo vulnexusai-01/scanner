@@ -63,6 +63,7 @@ function valoresItem(item: ItemCheck, locale: string): Record<string, string | n
   if (d.hostname !== undefined) valores.hostname = d.hostname;
   if (d.statusCode !== undefined) valores.statusCode = d.statusCode;
   if (d.expiraEm !== undefined) valores.expiraEm = new Date(d.expiraEm).toLocaleDateString(locale);
+  if (d.dias !== undefined) valores.dias = d.dias;
   if (d.emissor !== undefined) valores.emissor = d.emissor;
   if (d.protocolo !== undefined) valores.protocolo = d.protocolo;
   if (d.valor !== undefined) valores.valor = d.valor;
