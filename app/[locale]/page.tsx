@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { calculaFracaoCategoria } from "@/lib/verificador";
+import { calculaFracaoCategoria } from "@/lib/fracao-categoria";
 import type { Categoria, ItemCheck, ResultadoCheck, StatusItem } from "@/lib/verificador";
 import Topo from "./components/topo";
 import Rodape from "./components/rodape";
