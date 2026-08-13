@@ -22,6 +22,7 @@ export default function Topo({ mostraHistorico = false }: { mostraHistorico?: bo
       <nav>
         <Link href={verificarHref} className="nav-link">{t("nav.verificar")}</Link>
         {mostraHistorico && <Link href={historicoHref} className="nav-link">{t("nav.historico")}</Link>}
+        <Link href="/blog" className="nav-link">{t("nav.blog")}</Link>
         <span className="lang-toggle">
           <button
             type="button"

@@ -1,0 +1,78 @@
+---
+titulo: "Content-Security-Policy explicada para desenvolvedores"
+descricao: "A CSP define exatamente o que o navegador pode carregar no seu site. Veja as diretivas principais, como configurar sem quebrar nada e como monitorar violações."
+data: "2026-08-08"
+slug: "content-security-policy-explicada"
+---
+
+A Content-Security-Policy (CSP) é um header que diz ao navegador quais recursos um site pode carregar: scripts, estilos, imagens, conexões, iframes e por aí vai. Ela é uma das defesas mais eficazes contra XSS (cross-site scripting), porque limita o que um script injetado consegue fazer — mesmo que um invasor consiga inserir código, a CSP decide se esse código pode rodar.
+
+## O que a CSP controla
+
+O header funciona por diretivas, cada uma para um tipo de recurso. As mais usadas:
+
+- `default-src` — o fallback para todas as outras diretivas quando elas não são declaradas.
+- `script-src` — quais scripts podem carregar e rodar.
+- `style-src` — quais estilos podem carregar.
+- `img-src` — quais imagens podem ser exibidas.
+- `font-src` — quais fontes podem carregar.
+- `connect-src` — para onde o site pode abrir conexões (fetch, XHR, WebSocket).
+- `object-src` — plugins (ex.: Flash); o recomendado é `'none'`.
+- `base-uri` — onde o `<base>` pode apontar.
+- `form-action` — para onde formulários podem enviar.
+- `frame-ancestors` — quem pode exibir o site em um iframe (protege contra clickjacking).
+- `upgrade-insecure-requests` — converte recursos HTTP para HTTPS.
+
+Um exemplo de política básica:
+
+```
+Content-Security-Policy: default-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
+```
+
+Nessa política, `default-src 'self'` permite apenas recursos do próprio domínio; `frame-ancestors 'none'` impede qualquer site de colocar o seu dentro de um iframe.
+
+## Como permitir scripts inline com segurança
+
+Muitos sites precisam de scripts inline (o Next.js, por exemplo, injeta trechos de inicialização). Duas formas seguras:
+
+- **Nonce**: o servidor gera um valor aleatório por requisição e o coloca no atributo `nonce` de cada script inline. A CSP referência o mesmo valor:
+
+```
+script-src 'self' 'nonce-7nJj3sx9pA2dQz'
+```
+
+- **Hash**: para scripts fixos, você pode usar o hash do conteúdo (`sha256-...`). Qualquer alteração no script muda o hash.
+
+Para sites modernos, a combinação recomendada é `'strict-dynamic'` com nonce: uma vez que um script com nonce é executado, os scripts carregados por ele também passam a ser permitidos. Isso evita manter listas gigantes de domínios.
+
+## Como configurar sem quebrar o site
+
+1. Comece em modo de observação com `Content-Security-Policy-Report-Only`. O navegador não bloqueia nada, só envia relatórios do que seria bloqueado.
+2. Analise os relatórios e ajuste a política para o que o site realmente usa.
+3. Publique a política real (sem o `-Report-Only`) e continue monitorando violações.
+
+Ao revisar os relatórios, o ideal é resolver as violações ajustando o site (por exemplo, parando de carregar scripts externos) em vez de apenas afrouxar a política.
+
+## Erros comuns
+
+- **Política restritiva demais de uma vez**: quebra recursos legítimos. Por isso o modo Report-Only existe.
+- **Usar `'unsafe-inline'` para scripts**: anula boa parte da proteção contra XSS. Se o site precisa de inline, use nonce ou hash.
+- **Depender de `'unsafe-eval'`**: necessário por algumas bibliotecas, mas amplia a superfície. Vale a pena remover quando possível.
+- **Não declarar `connect-src`**: em políticas com `default-src 'none'`, o fetch do próprio site pode ser bloqueado se você esquecer `connect-src 'self'`.
+- **Não incluir o atributo `nonce` nos scripts**: a CSP não adivinha — o atributo precisa existir no HTML.
+- **Abusar de `data:` em `img-src` e `font-src`**: funciona, mas abre a porta para outros usos; permita apenas o que é necessário.
+
+## Como monitorar violações
+
+A CSP pode enviar relatórios quando algo é bloqueado, via `report-to` (Reporting API moderna) e o header `Reporting-Endpoints`:
+
+```
+Reporting-Endpoints: csp-endpoint="/api/csp-report"
+Content-Security-Policy: default-src 'self'; ...; report-to csp-endpoint
+```
+
+Esses relatórios mostram qual diretiva foi violada e por qual recurso — essencial para detectar um script novo esquecido fora da política ou um recurso de terceiros que passou a ser usado.
+
+## Como verificar
+
+O scanner da VulnexusAI verifica se o site envia o header `Content-Security-Policy`. Se ainda não tem política, comece pelo `default-src 'self'`, ative o reporte e evolua aos poucos. Uma CSP bem ajustada reduz muito o impacto de uma falha de XSS.

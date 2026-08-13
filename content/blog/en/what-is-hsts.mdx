@@ -1,0 +1,74 @@
+---
+titulo: "What is HSTS and why your site needs it"
+descricao: "HTTP Strict Transport Security (HSTS) forces browsers to use HTTPS only for your domain. Learn how it works, how to configure it and which mistakes to avoid."
+data: "2026-08-11"
+slug: "what-is-hsts"
+---
+
+When you visit a website over HTTPS and the server responds with the `Strict-Transport-Security` header, the browser starts requiring HTTPS for that domain for a period of time. That mechanism is called HSTS (HTTP Strict Transport Security), and it is one of the simplest, cheapest defenses against connection downgrade attacks.
+
+## What HSTS is
+
+HSTS is a response header that tells the browser: "from now on, only talk to me over HTTPS." After receiving it, the browser automatically converts any access to `http://yoursite.com` into `https://yoursite.com` — even before making the request.
+
+The header looks like this:
+
+```
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+```
+
+- `max-age` — how many seconds the browser must remember the rule (31536000 seconds = 1 year).
+- `includeSubDomains` — applies the rule to subdomains as well (yoursite.com, www.yoursite.com, app.yoursite.com).
+- `preload` — authorizes the domain to be submitted to the browsers' HSTS preload list.
+
+## How it works in practice
+
+The flow looks like this:
+
+1. You visit the site over HTTPS. The response carries the HSTS header.
+2. The browser stores the rule for the `max-age` duration.
+3. On later visits, even if you type `http://`, the browser uses HTTPS.
+4. In browsers with the preload list enabled, the rule applies from the very first visit, without depending on the header.
+
+The key point: while the browser honors the rule, an attacker on an intermediate network (such as a public Wi-Fi) cannot intercept the request and downgrade it to HTTP before it leaves the browser.
+
+## Why it matters
+
+Without HSTS, anyone wanting to intercept traffic can attempt SSL stripping: keeping the conversation on HTTP between the victim and the site, even when the site supports HTTPS. HSTS prevents that downgrade because the browser refuses HTTP for domains that already received the header.
+
+There is one important limitation: HSTS only protects after the first visit that received the header. To also protect that first visit, the domain needs to be on the browsers' preload list.
+
+## How to configure it
+
+The header must be sent on every HTTPS response. Some examples:
+
+**nginx**
+
+```nginx
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+```
+
+**Apache**
+
+```apache
+Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+```
+
+**Cloudflare and other CDNs** — most offer an HSTS toggle in their dashboard, including preload submission.
+
+**Vercel / Next.js** — define the header in your configuration file (for example, in the Next.js headers config or your hosting platform).
+
+## Common mistakes
+
+- **A short `max-age`**: low values protect little, because the rule expires quickly in the browser.
+- **Forgetting `includeSubDomains`**: without it, subdomains remain reachable over HTTP.
+- **Sending the header over HTTP responses**: browsers ignore HSTS received over HTTP; it only counts over HTTPS.
+- **Enabling it before every subdomain is on HTTPS**: with `includeSubDomains`, any subdomain without HTTPS becomes unreachable. Enable it only when everything is covered.
+- **Assuming removing the header fixes things fast**: the browser only accepts HTTP again after `max-age` expires (unless the rule is cleared manually).
+- **Submitting to preload without meeting the requirements**: the list requires a `max-age` of at least 31536000 seconds, `includeSubDomains`, and the whole domain served over HTTPS.
+
+## How to check it
+
+The VulnexusAI scanner verifies whether your site sends the `Strict-Transport-Security` header and also whether HTTP visits are redirected to HTTPS. It is one of the first items in the report — and one of the easiest to fix.
+
+Before rolling it out, test with a shorter policy (for example, a few days) and only raise the `max-age` after confirming everything works.

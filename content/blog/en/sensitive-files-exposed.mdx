@@ -1,0 +1,68 @@
+---
+titulo: "Why files like .env and .git end up exposed (and how to prevent it)"
+descricao: "Exposed .env files, .git directories and backups leak passwords, keys and the whole source code of a site. Understand why it happens and how to block it."
+data: "2026-07-30"
+slug: "sensitive-files-exposed"
+---
+
+Every web server exposes whatever sits inside its web root. If a sensitive file ends up there — by mistake, copy, backup, or a missing block rule — it becomes accessible to anyone who guesses the path. The most common cases are the `.env` file, the `.git` directory, and backups of configuration files.
+
+## What usually leaks
+
+**`.env`** — holds secrets: API keys, database passwords, tokens. It was meant to live on the server (or in the deployment environment), not to be downloaded. A publicly accessible `.env` is a password in the hands of any visitor.
+
+**`.git`** — contains the entire repository history (`.git/config`, `.git/HEAD`, the objects with the content). If it is exposed, the full source code can be reconstructed, including old versions that may contain credentials.
+
+**Backups and temp files** — predictable names like `wp-config.php.bak`, `config.php~`, `config.php.old` or `database.sql` sitting in the web root are easy to find. Backups should live outside the web root, not next to the public files.
+
+**Other metadata files** — `.DS_Store` (macOS) records the folder listing of the Mac that created it and has been used to map a site's directory structure.
+
+## Why this happens
+
+- **Deploying straight from the repository**: anyone who uploads the project as a "folder upload" carries `.git`, `.env` and everything else along.
+- **Missing block rules**: the server serves any existing file; without a specific rule, `.git/config` is served like any other file.
+- **Backups inside the web root**: to "keep it simple", backups are saved to the public folder — and stay there.
+- **Editor/OS files** (e.g. `config.php~`) created locally and uploaded without review.
+
+## How to prevent it
+
+**Do not put secrets in the repository.** Use `.gitignore` for `.env`, backups and local files. Publish only a `.env.example` with variable names, no real values.
+
+**Do not leave `.git` on the production server.** Deploy from the build output (generated folder), not from a cloned repository. If that is not possible, block access.
+
+**Block sensitive paths on the server.** Examples:
+
+**nginx:**
+
+```nginx
+location ~ /\.(?!well-known) {
+  deny all;
+}
+location ~ (\.env|\.git|\.DS_Store|\.sql|\.bak|config\.php|wp-config\.php) {
+  deny all;
+}
+```
+
+**Apache (.htaccess):**
+
+```apache
+RedirectMatch 404 /\.(env|git|DS_Store|sql|bak)
+```
+
+**CDN / WAF:** many protection services block paths like `/.env`, `/.git` and `wp-config.php` by default, or let you create custom rules.
+
+**Rotate whatever already leaked.** If a file was ever accessible, assume it was downloaded: rotate the keys and passwords contained in it, do not just block access.
+
+**Verify before publishing.** After every deploy, confirm that sensitive paths respond with an error (403/404), not with content.
+
+## Common mistakes
+
+- **Blocking only direct access to `/.git/`**: the rules need to cover the whole directory and path variations (e.g. URL-encoded).
+- **Thinking `.gitignore` protects the server**: it keeps files out of the repository; it does not stop a server from serving a file that already exists there.
+- **Keeping secrets in old repository versions**: even if the current `.env` does not leak, an exposed `.git` hands over the history with older versions.
+- **Backups with predictable names in the web root**: `site.sql`, `backup.zip`, `config.php.bak` are the first paths scanners test.
+- **Finding out only after the leak**: verification must be continuous, because a new deploy can reintroduce the problem.
+
+## How to check it
+
+The VulnexusAI scanner tests a list of known sensitive paths — `.env`, `.git/config`, `.git/HEAD`, `wp-config.php` and `config.php` backups, `.DS_Store` — and reports whether any of them is publicly accessible. If a failure shows up, remove the file from the server or block the path, rotate the secrets involved, and re-test to confirm.

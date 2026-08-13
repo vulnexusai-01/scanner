@@ -22,7 +22,8 @@
   },
   "nav": {
     "verificar": "Check",
-    "historico": "History"
+    "historico": "History",
+    "blog": "Blog"
   },
   "langSwitcher": {
     "pt": "Portuguese",
@@ -96,7 +97,23 @@
     "sobre": "About",
     "privacidade": "Privacy",
     "termos": "Terms",
-    "cookies": "Cookies"
+    "cookies": "Cookies",
+    "blog": "Blog"
+  },
+  "blog": {
+    "metaTitle": "Blog | VulnexusAI",
+    "metaDescription": "Web security guides and articles in English: HSTS, Content-Security-Policy, SPF/DKIM/DMARC, secure cookies and exposed files.",
+    "eyebrow": "VULNEXUSAI · BLOG",
+    "titulo": "Content hub",
+    "sub": "Practical web security guides for developers and website owners.",
+    "dataPublicacao": "Published on {data}",
+    "lerArtigo": "Read article",
+    "lerEmOutroIdioma": "Read in {idioma}",
+    "verificarCta": {
+      "titulo": "Does your site pass these checks?",
+      "texto": "Test any public URL with the free VulnexusAI scanner and get a score from 0 to 100, with a grade from A to F and fix tips.",
+      "botao": "Check my website"
+    }
   },
   "paginas": {
     "sobre": {

@@ -1,0 +1,85 @@
+---
+titulo: "SPF, DKIM e DMARC: guia completo de autenticação de email"
+descricao: "SPF, DKIM e DMARC impedem que terceiros forjem emails com o seu domínio. Entenda cada mecanismo, como configurá-los no DNS e os erros mais comuns."
+data: "2026-08-05"
+slug: "spf-dkim-dmarc-guia-completo"
+---
+
+Emails são fáceis de forjar. Por padrão, qualquer servidor pode enviar uma mensagem se fazendo passar pelo seu domínio — e os destinatários não têm como saber a diferença. SPF, DKIM e DMARC são três mecanismos de DNS que existem exatamente para isso: autenticar emails legítimos e dar meios de rejeitar os forjados. Nenhum dos três funciona sozinho — é a combinação deles que protege seu domínio.
+
+## SPF (Sender Policy Framework)
+
+O SPF publica, em um registro TXT do seu domínio, quais servidores estão autorizados a enviar email em nome dele. O servidor que recebe uma mensagem consulta esse registro e compara com o servidor de origem.
+
+Um registro típico:
+
+```
+v=spf1 include:_spf.provedor.com ~all
+```
+
+- `include:` adiciona os servidores de outro domínio (geralmente o seu provedor de email).
+- `~all` indica que mensagens de servidores não listados devem ser tratadas como suspeitas (softfail).
+- `-all` indica que mensagens de servidores não listados devem ser rejeitadas (fail).
+
+Limitações importantes: o SPF valida o envelope do email (o `MAIL FROM`), não o campo `From` exibido ao usuário — por isso sozinho ele não impede a forja visível. E o SPF só compara o servidor de envio: se um email é encaminhado, o servidor de encaminhamento costuma não estar na lista e o SPF falha.
+
+## DKIM (DomainKeys Identified Mail)
+
+O DKIM adiciona uma assinatura digital ao email. O servidor de envio assina a mensagem com uma chave privada, e o domínio publica a chave pública correspondente no DNS. O destinatário consulta a chave e verifica se a assinatura confere com o conteúdo.
+
+A chave pública fica em um registro TXT com formato de seletor:
+
+```
+<seletor>._domainkey.seu-dominio.com
+```
+
+Exemplo de conteúdo (truncado):
+
+```
+v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC...
+```
+
+O DKIM verifica o conteúdo da mensagem (assim alterações feitas no caminho invalidam a assinatura), mas também depende de que o domínio no campo `From` esteja alinhado com a assinatura — o que é papel do DMARC decidir.
+
+## DMARC (Domain-based Message Authentication, Reporting and Conformance)
+
+O DMARC diz ao destinatário o que fazer quando SPF e/ou DKIM falham, e exige o **alinhamento**: o domínio do campo `From` precisa estar alinhado com o domínio validado por SPF ou DKIM. Ele fica no registro `_dmarc`:
+
+```
+_dmarc.seu-dominio.com
+```
+
+Conteúdo típico:
+
+```
+v=DMARC1; p=none; rua=mailto:dmarc@seu-dominio.com; pct=100
+```
+
+- `p` é a política: `none` (apenas relatar), `quarantine` (enviar para spam) ou `reject` (rejeitar).
+- `rua` recebe relatórios agregados (XML diário) de quem enviou email em seu nome e o resultado das validações.
+- `pct` controla a porcentagem de mensagens em que a política é aplicada, útil para evolução gradual.
+
+O caminho recomendado é começar com `p=none`, acompanhar os relatórios por alguns dias para confirmar que todo o seu envio legítimo está autenticado e só então evoluir para `quarantine` e `reject`.
+
+## Como o fluxo funciona junto
+
+1. O servidor que envia o email passa por SPF (servidor autorizado) e assina com DKIM.
+2. O destinatário consulta SPF e DKIM e confere o alinhamento do `From` (regra do DMARC).
+3. Se o SPF e o DKIM passarem (ou ao menos um passar com alinhamento), o email é entregue.
+4. Se falharem, o destinatário aplica a política `p` do DMARC: nenhuma ação, quarentena ou rejeição.
+
+Um domínio com `p=reject` e SPF/DKIM configurados corretamente dificulta muito a falsificação: mensagens forjadas não passam na autenticação e são descartadas.
+
+## Erros comuns
+
+- **Múltiplos registros SPF**: só o primeiro é considerado; se você publicar mais de um, o comportamento pode ser imprevisível.
+- **SPF com mais de 10 consultas de DNS**: registros com muitos `include` excedem o limite e falham em parte dos destinatários.
+- **Usar `~all` para sempre**: softfail protege menos do que `-all`; vale evoluir quando estiver seguro.
+- **DMARC sem SPF e DKIM**: sem nada autenticando, todos os seus emails falham no DMARC — os legítimos são os primeiros a sofrer.
+- **Evoluir para `p=reject` sem olhar os relatórios**: você pode rejeitar seu próprio envio legítimo (boletins, transacionais).
+- **DKIM com chave pequena ou seletor errado**: a assinatura não é verificada e o email cai em spam.
+- **Aplicar a política sem `rua`**: sem relatórios, você não tem visibilidade do que está acontecendo.
+
+## Como verificar
+
+O scanner da VulnexusAI verifica se o domínio publica registros SPF, DMARC (`_dmarc`) e seletores DKIM comuns. Se algo faltar, o relatório aponta o que publicar. Esse é um dos itens que mais impactam a entregabilidade — e a imagem da sua marca, já que domínios sem autenticação são usados em golpes de phishing.

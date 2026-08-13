@@ -12,6 +12,7 @@ export default function Rodape() {
         <span>VulnexusAI</span>
       </div>
       <nav className="footer-nav">
+        <Link href="/blog">{t("footerLinks.blog")}</Link>
         <Link href="/sobre">{t("footerLinks.sobre")}</Link>
         <Link href="/privacidade">{t("footerLinks.privacidade")}</Link>
         <Link href="/termos">{t("footerLinks.termos")}</Link>

@@ -1,0 +1,95 @@
+---
+titulo: "Cookies seguros: Secure, HttpOnly e SameSite explicados"
+descricao: "Os atributos Secure, HttpOnly e SameSite controlam como os cookies são enviados e acessados. Veja o que cada um faz, como configurar e erros comuns."
+data: "2026-08-02"
+slug: "cookies-seguros-secure-httponly-samesite"
+---
+
+Cookies carregam informação sensível — sessão, preferências, identificadores. Como o navegador os envia automaticamente em cada requisição, um cookie mal configurado pode ser lido, roubado ou enviado onde não deveria. Três atributos definem a maior parte dessa segurança: `Secure`, `HttpOnly` e `SameSite`.
+
+## Secure — só por HTTPS
+
+O atributo `Secure` faz o navegador enviar o cookie apenas em conexões HTTPS. Sem ele, o cookie é enviado também por HTTP — e tráfego HTTP é legível e alterável por qualquer um no caminho.
+
+```
+Set-Cookie: sessao=abc123; Secure
+```
+
+Se o site usa HTTPS, praticamente todo cookie deveria ter `Secure`. Cookies de sessão e autenticação, obrigatoriamente.
+
+## HttpOnly — invisível para o JavaScript
+
+O atributo `HttpOnly` impede que o JavaScript acesse o cookie via `document.cookie`. Isso não impede o site de funcionar: cookies de sessão não precisam ser lidos pelo JavaScript — quem os usa é o navegador, automaticamente.
+
+```
+Set-Cookie: sessao=abc123; Secure; HttpOnly
+```
+
+Esse é o atributo que protege contra o roubo de sessão em cenários de XSS: mesmo que um script malicioso consiga rodar, ele não consegue ler o cookie de sessão. Cookies que só o servidor usa devem ter `HttpOnly`.
+
+## SameSite — de onde a requisição pode vir
+
+O `SameSite` controla se o cookie é enviado em requisições que não se originam do seu site — a base da proteção contra CSRF (cross-site request forgery).
+
+- `SameSite=Lax` — o cookie é enviado em navegações de topo (por exemplo, clicar em um link externo que abre seu site) e em requisições do mesmo site. Em requisições cross-site que não são navegação de topo (formulários, fetch), não é enviado. É o comportamento padrão dos navegadores modernos quando nenhum valor é definido.
+- `SameSite=Strict` — o cookie não é enviado em nenhuma requisição cross-site. Proteção máxima, mas pode afetar a experiência quando o usuário chega ao site vindo de um link externo.
+- `SameSite=None` — o cookie é enviado em todas as requisições, inclusive cross-site. Só faz sentido para casos específicos (por exemplo, integrações que precisam do cookie em outro domínio) e **exige `Secure`** — navegadores rejeitam `SameSite=None` sem ele.
+
+Exemplo completo:
+
+```
+Set-Cookie: sessao=abc123; Secure; HttpOnly; SameSite=Lax; Path=/
+```
+
+## Prefixos de cookies
+
+Como reforço, você pode usar prefixos que o navegador valida:
+
+- `__Host-` — o cookie deve ser `Secure`, sem `Domain`, com `Path=/`. Se qualquer regra for violada, o navegador rejeita o cookie.
+- `__Secure-` — o cookie deve ser `Secure`.
+
+Esses prefixos ajudam a impedir que um cookie definido por um subdomínio comprometido force um cookie de nome igual no domínio pai.
+
+## Como configurar
+
+**Express (Node.js):**
+
+```js
+res.cookie("sessao", token, {
+  httpOnly: true,
+  secure: true,
+  sameSite: "lax",
+});
+```
+
+**Next.js (server action / route handler):**
+
+```ts
+cookies().set("sessao", token, {
+  httpOnly: true,
+  secure: true,
+  sameSite: "lax",
+  path: "/",
+});
+```
+
+**Header direto:**
+
+```
+Set-Cookie: sessao=abc123; Secure; HttpOnly; SameSite=Lax; Path=/
+```
+
+Atenção: atrás de proxies/load balancers, garanta que o servidor saiba que a conexão é HTTPS (via `X-Forwarded-Proto`), senão o `secure: true` pode impedir a criação do cookie indevidamente.
+
+## Erros comuns
+
+- **Cookies de sessão sem `HttpOnly`**: um XSS se transforma em roubo de sessão.
+- **`SameSite=None` sem `Secure`**: o navegador rejeita o cookie — a sessão simplesmente não persiste.
+- **Esquecer `Secure` em qualquer ambiente**: o cookie trafega em texto puro quando o usuário cai em HTTP.
+- **`SameSite=None` onde `Lax` bastaria**: cada caso precisa de justificativa; o padrão seguro é Lax.
+- **Confiar que "a configuração do framework" resolve tudo**: verifique os headers `Set-Cookie` reais na resposta.
+- **Usar `HttpOnly` e ainda ler o cookie com JavaScript**: não são compatíveis — se o JS precisa ler, não é `HttpOnly`.
+
+## Como verificar
+
+O scanner da VulnexusAI inspeciona os cookies definidos na cadeia de resposta do site e verifica a presença de `Secure`, `HttpOnly` e `SameSite`. Cookies de sessão sem esses atributos aparecem diretamente no relatório, com a correção sugerida.

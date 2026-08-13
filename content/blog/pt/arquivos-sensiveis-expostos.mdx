@@ -1,0 +1,68 @@
+---
+titulo: "Por que arquivos como .env e .git ficam expostos (e como evitar)"
+descricao: "Arquivos .env, diretórios .git e backups públicos vazam senhas, chaves e o código-fonte do site. Entenda por que isso acontece e como bloquear."
+data: "2026-07-30"
+slug: "arquivos-sensiveis-expostos"
+---
+
+Todo servidor web expõe o que estiver dentro da pasta raiz (web root). Se um arquivo sensível foi parar lá — por engano, cópia, backup ou falta de regra de bloqueio — ele fica acessível para qualquer pessoa que adivinhe o caminho. Os casos mais comuns são o arquivo `.env`, o diretório `.git` e backups de arquivos de configuração.
+
+## O que costuma vazar
+
+**`.env`** — concentra segredos: chaves de API, senhas de banco, tokens. Foi feito para viver no servidor (ou no ambiente de deploy), não para ser baixado. Um `.env` acessível publicamente é uma senha na mão de qualquer visitante.
+
+**`.git`** — contém todo o histórico do repositório (`.git/config`, `.git/HEAD`, os objetos com o conteúdo). Com ele exposto, é possível reconstruir o código-fonte completo, incluindo versões antigas que podem conter credenciais.
+
+**Backups e temporários** — nomes previsíveis como `wp-config.php.bak`, `config.php~`, `config.php.old` ou `banco.sql` no web root são facilmente localizados. Backups deveriam ficar fora do web root, não ao lado dos arquivos públicos.
+
+**Outros arquivos de metadados** — `.DS_Store` (macOS) registra a listagem de pastas do Mac que o gerou e já foi usado para mapear a estrutura de diretórios de um site.
+
+## Por que isso acontece
+
+- **Deploy direto do repositório**: quem sobe o projeto como um "upload da pasta" leva junto `.git`, `.env` e tudo mais.
+- **Falta de regras de bloqueio**: o servidor entrega qualquer arquivo existente; sem uma regra específica, `.git/config` é servido como qualquer outro.
+- **Backups dentro do web root**: para "facilitar", backups são salvos na pasta pública — e ficam lá.
+- **Arquivos de editor/editor do sistema operacional** (ex.: `config.php~`) criados localmente e enviados sem revisão.
+
+## Como evitar
+
+**Não coloque segredos no repositório.** Use `.gitignore` para `.env`, backups e arquivos locais. Publique apenas um `.env.example` com nomes de variáveis, sem valores reais.
+
+**Não deixe o `.git` no servidor de produção.** Faça o deploy a partir do build (pasta gerada), não do repositório clonado. Se não for possível, bloqueie o acesso.
+
+**Bloqueie os caminhos sensíveis no servidor.** Exemplos:
+
+**nginx:**
+
+```nginx
+location ~ /\.(?!well-known) {
+  deny all;
+}
+location ~ (\.env|\.git|\.DS_Store|\.sql|\.bak|config\.php|wp-config\.php) {
+  deny all;
+}
+```
+
+**Apache (.htaccess):**
+
+```apache
+RedirectMatch 404 /\.(env|git|DS_Store|sql|bak)
+```
+
+**CDN / WAF:** muitos serviços de proteção permitem bloquear por padrão caminhos como `/.env`, `/.git` e `wp-config.php`, ou você pode criar regras personalizadas.
+
+**Remova o que já vazou.** Se algum arquivo já esteve acessível, considere que ele foi baixado: rotacione chaves e senhas contidas nele, não apenas bloqueie o acesso.
+
+**Verifique antes de publicar.** Após cada deploy, confirme que os caminhos sensíveis respondem com erro (403/404) e não com o conteúdo.
+
+## Erros comuns
+
+- **Bloquear só o acesso direto a `/.git/`**: as regras precisam cobrir o diretório inteiro e variações de caminho (ex.: com URL-encoding).
+- **Achar que `.gitignore` protege o servidor**: ele evita que o arquivo entre no repositório; não impede o servidor de servir um arquivo que já existe lá.
+- **Guardar segredos em versões antigas do repositório**: mesmo que o `.env` atual não vaze, um `.git` exposto entrega o histórico com as versões anteriores.
+- **Backups com nomes previsíveis no web root**: `site.sql`, `backup.zip`, `config.php.bak` são os primeiros caminhos testados por scanners.
+- **Só descobrir o problema depois do vazamento**: a verificação deve ser contínua, porque um novo deploy pode reintroduzir o problema.
+
+## Como verificar
+
+O scanner da VulnexusAI testa uma lista de caminhos sensíveis conhecidos — `.env`, `.git/config`, `.git/HEAD`, backups de `wp-config.php` e `config.php`, `.DS_Store` — e informa se algum deles está acessível publicamente. Se aparecer uma falha, remova o arquivo do servidor ou bloqueie o caminho, rotacione os segredos envolvidos e re-teste para confirmar.
