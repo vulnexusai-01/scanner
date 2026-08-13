@@ -1,7 +1,7 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
-export type ContextoRateLimit = "badge" | "verificar" | "csp-report";
+export type ContextoRateLimit = "badge" | "verificar" | "csp-report" | "monitor";
 
 const JANELA_MS = 5 * 60 * 1000;
 const LIMITE_ENTRADAS = 5000;
@@ -10,6 +10,7 @@ const LIMITES_POR_CONTEXTO: Record<ContextoRateLimit, number> = {
   badge: 25,
   verificar: 10,
   "csp-report": 10,
+  monitor: 5,
 };
 
 const mapaMemoria = new Map<string, number[]>();

@@ -1,5 +1,36 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Monitoramento contínuo (QStash + webhooks)
+
+O scanner pode monitorar domínios continuamente: um cron do [QStash](https://upstash.com) executa `POST /api/monitor/run` no horário agendado, o site é re-verificado e, se o score cair ou algum item piorar de `ok` para `falha`, um alerta é enviado para um webhook do Discord ou Slack.
+
+### Env vars (Upstash)
+
+```bash
+# QStash (agendamentos do monitoramento)
+QSTASH_TOKEN=
+QSTASH_CURRENT_SIGNING_KEY=
+QSTASH_NEXT_SIGNING_KEY=
+APP_URL=https://vulnexusai.com
+```
+
+- `QSTASH_TOKEN`, `QSTASH_CURRENT_SIGNING_KEY` e `QSTASH_NEXT_SIGNING_KEY` saem do painel da Upstash (QStash → Settings).
+- `APP_URL` é a URL pública da aplicação (o Vercel preenche `VERCEL_URL` automaticamente; `APP_URL` só é necessário fora da Vercel). O QStash usa essa URL como destino do cron (`{APP_URL}/api/monitor/run`).
+- Sem `QSTASH_TOKEN`, `POST /api/monitor` responde `502` com o código `qstash-nao-configurado` — o monitoramento não é criado.
+
+### API
+
+- `POST /api/monitor` — corpo `{ "url": "...", "webhookUrl": "...", "webhookTipo": "discord"|"slack", "cron": "0 6 * * *" }`. `webhookTipo` e `cron` são opcionais (padrões: `discord` e `0 6 * * *`, diariamente às 06:00 UTC). Reenviar a mesma URL atualiza o webhook e o cron.
+- `DELETE /api/monitor` — corpo `{ "url": "..." }`. Remove o monitor e cancela o agendamento no QStash.
+- `POST /api/monitor/run` — chamado somente pelo QStash; a assinatura é verificada com `verifySignatureAppRouter` (as chaves de assinatura são obrigatórias). O corpo `{ "hostname": "..." }` processa um domínio; sem corpo, processa todos os monitores. Sempre responde `200` ao fim da rodada para evitar re-execuções do QStash por erro de scan.
+- Rate limit: `monitor` permite 5 requisições por janela de 5 minutos (mesmo padrão de `verificar`).
+
+### Como funciona
+
+1. `POST /api/monitor` cria/atualiza o schedule `monitor-{hostname}` no QStash e salva o monitor em Redis (`monitor:{hostname}`).
+2. No horário do cron, o QStash chama `/api/monitor/run`, que executa `verificarSite` e guarda o resultado em `monitor:resultado:{hostname}`.
+3. A primeira execução serve como linha de base. Nas seguintes, o score e os itens são comparados; uma queda de score ou item `ok` → `falha` dispara `enviaAlerta` no webhook configurado (Discord `{content}` / Slack `{text}`).
+
 ## Getting Started
 
 First, run the development server:

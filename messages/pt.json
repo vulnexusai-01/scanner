@@ -563,5 +563,17 @@
       },
       "dica": "Tente novamente mais tarde."
     }
+  },
+  "monitorar": {
+    "titulo": "Monitorar este site",
+    "descricao": "Receba alertas no Discord ou Slack quando o score cair ou um item piorar. Verificações diárias às 06:00 UTC.",
+    "webhookUrl": "URL do webhook (Discord ou Slack)",
+    "webhookUrlPlaceholder": "https://discord.com/api/webhooks/...",
+    "webhookTipo": "Tipo de webhook",
+    "webhookTipoDiscord": "Discord",
+    "webhookTipoSlack": "Slack",
+    "ativar": "Ativar monitoramento",
+    "ativando": "Ativando...",
+    "sucesso": "Monitoramento de {hostname} ativado. Você será avisado no webhook quando o score cair ou um item piorar."
   }
 }

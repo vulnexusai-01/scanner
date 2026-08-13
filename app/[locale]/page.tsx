@@ -324,6 +324,12 @@ export default function Home() {
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [copiado, setCopiado] = useState(false);
+  const [monitorarAberto, setMonitorarAberto] = useState(false);
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const [webhookTipo, setWebhookTipo] = useState<"discord" | "slack">("discord");
+  const [monitorando, setMonitorando] = useState(false);
+  const [monitorMensagem, setMonitorMensagem] = useState("");
+  const [monitorErro, setMonitorErro] = useState("");
 
   const historico = useSyncExternalStore(
     (onStoreChange) => {
@@ -368,6 +374,30 @@ export default function Home() {
       setErro(t("erros.rede"));
     } finally {
       setCarregando(false);
+    }
+  }
+
+  async function ativarMonitoramento() {
+    if (!resultado) return;
+    setMonitorErro("");
+    setMonitorMensagem("");
+    setMonitorando(true);
+    try {
+      const res = await fetch("/api/monitor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: resultado.urlFinal, webhookUrl, webhookTipo }),
+      });
+      const dados = await res.json();
+      if (!res.ok) {
+        setMonitorErro(typeof dados.erro === "string" ? dados.erro : t("erros.generico"));
+        return;
+      }
+      setMonitorMensagem(dados.mensagem);
+    } catch {
+      setMonitorErro(t("erros.rede"));
+    } finally {
+      setMonitorando(false);
     }
   }
 
@@ -564,6 +594,43 @@ export default function Home() {
               <div className="score-label">{t(`resultado.score.${nomeScore(resultado.score)}`)}</div>
             </div>
           </div>
+
+          <details
+            className="item monitor-box"
+            open={monitorarAberto}
+            onToggle={e => setMonitorarAberto(e.currentTarget.open)}
+          >
+            <summary>
+              <span className="item-titulo">{t("monitorar.titulo")}</span>
+            </summary>
+            <div className="item-detalhe">
+              <p>{t("monitorar.descricao")}</p>
+              <div className="monitor-linha">
+                <input
+                  type="text"
+                  value={webhookUrl}
+                  onChange={e => setWebhookUrl(e.target.value)}
+                  placeholder={t("monitorar.webhookUrlPlaceholder")}
+                  aria-label={t("monitorar.webhookUrl")}
+                  disabled={monitorando}
+                />
+                <select
+                  value={webhookTipo}
+                  onChange={e => setWebhookTipo(e.target.value as "discord" | "slack")}
+                  aria-label={t("monitorar.webhookTipo")}
+                  disabled={monitorando}
+                >
+                  <option value="discord">{t("monitorar.webhookTipoDiscord")}</option>
+                  <option value="slack">{t("monitorar.webhookTipoSlack")}</option>
+                </select>
+                <button className="btn" onClick={ativarMonitoramento} disabled={monitorando || !webhookUrl.trim()}>
+                  {monitorando ? t("monitorar.ativando") : t("monitorar.ativar")}
+                </button>
+              </div>
+              {monitorMensagem && <p className="monitor-msg monitor-ok">{monitorMensagem}</p>}
+              {monitorErro && <p className="monitor-msg monitor-err">{monitorErro}</p>}
+            </div>
+          </details>
 
           <div className="dashboard">
             <div className="radar-box">
