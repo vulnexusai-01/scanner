@@ -138,15 +138,11 @@
         },
         {
           "h": "What it does not do",
-          "p": "The scan is 100% automated with no human analysis — results in seconds, but not a professional assessment. Need a full audit with human review? Check out VulnexusAI Pro."
+          "p": "The scan is 100% automated with no human analysis — results in seconds, but not a professional assessment. Use the result as a starting point to dig deeper into your site's security."
         },
         {
           "h": "How it works",
           "p": "Checks happen at the moment you type the domain. The URL is processed by the server to generate the scan and history is stored only in your browser. We do not store scan data."
-        },
-        {
-          "h": "What about VulnexusAI Pro?",
-          "p": "VulnexusAI Pro is VulnexusAI's commercial product, with expanded scanning, continuous monitoring and executive reports. This free tool is independent: you can use it without an account and with no obligation."
         }
       ]
     },

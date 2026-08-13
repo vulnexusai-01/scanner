@@ -138,15 +138,11 @@
         },
         {
           "h": "O que ela não faz",
-          "p": "A verificação é 100% automatizada e não envolve análise humana — resultados em segundos, mas sem laudo profissional. Precisa de uma auditoria completa com revisão humana? Conheça o VulnexusAI Pro."
+          "p": "A verificação é 100% automatizada e não envolve análise humana — resultados em segundos, sem laudo profissional. Use o resultado como ponto de partida para aprofundar a análise do seu site."
         },
         {
           "h": "Como funciona",
           "p": "As verificações acontecem no momento em que você digita o domínio. A URL é processada pelo servidor para gerar o scan e o histórico fica salvo apenas no seu navegador. Não armazenamos dados de verificação."
-        },
-        {
-          "h": "E o VulnexusAI Pro?",
-          "p": "O VulnexusAI Pro é o produto comercial da VulnexusAI, com varredura ampliada, monitoramento contínuo e relatórios executivos. Esta ferramenta gratuita é independente: você pode usá-la sem conta e sem nenhuma obrigação."
         }
       ]
     },
