@@ -1,0 +1,84 @@
+---
+titulo: "robots.txt and security.txt: files every website should have"
+descricao: "robots.txt guides crawlers on what to index; security.txt tells researchers how to report vulnerabilities. See how to create a good file of each."
+data: "2026-08-17"
+slug: "robots-txt-and-security-txt"
+---
+
+Two small files make a big difference in how a website operates: `robots.txt` and `security.txt`. One tells search engines what to index; the other tells security researchers how to report issues. Both are public, both are checked by auditors — and both are easy to create correctly.
+
+## What robots.txt is
+
+`robots.txt` is a plain text file at the site root that instructs crawlers (Google, Bing, and others) about what to access and index. It is **not an access control** — it is a recommendation. A URL can remain reachable even if it never appears in the file.
+
+Basic example:
+
+```
+User-agent: *
+Disallow: /admin/
+Disallow: /api/private
+Allow: /public/
+Sitemap: https://your-site.com/sitemap.xml
+```
+
+- `User-agent` — which crawler the rule applies to (`*` for all).
+- `Disallow` — paths the crawler must not access.
+- `Allow` — exceptions to earlier blocking rules.
+- `Sitemap` — points to the site's sitemap.xml.
+
+Classic mistake: hiding sensitive content in `robots.txt`. It is a public file — anyone can read it and access the listed URLs directly. To protect for real, block access at the server level (auth, access rules) and treat `robots.txt` only as an indexing hint.
+
+## What security.txt is
+
+`security.txt` is the standard (RFC 9116) for communicating how to contact a site's security team. It follows the same spirit as `robots.txt`: a public file in a predictable location that streamlines vulnerability reports.
+
+The default location is:
+
+```
+https://your-site.com/.well-known/security.txt
+```
+
+Example:
+
+```
+Contact: mailto:security@your-site.com
+Expires: 2027-01-01T00:00:00.000Z
+Preferred-Languages: en, pt
+```
+
+- `Contact` — channel for reporting vulnerabilities (email, URL, page).
+- `Expires` — validity date of the file, ISO 8601 format. Without it, some consumers treat the file as invalid.
+- `Preferred-Languages` — accepted languages for the report.
+- `Encryption` — optional, for a PGP contact key.
+- `Policy` — optional, link to the project's disclosure policy.
+
+Without a `security.txt` (or with a missing/empty `Expires`), researchers may struggle to find where to report — and reports end up going to the wrong channels or never happening.
+
+## How to create them
+
+**robots.txt** — at the site root (`/robots.txt`), with minimal rules:
+
+```
+User-agent: *
+Disallow: /admin/
+Disallow: /private/
+Sitemap: https://your-site.com/sitemap.xml
+```
+
+**security.txt** — at `/.well-known/security.txt`, served with `Content-Type: text/plain`, preferably with a root `security.txt` that redirects to the `/.well-known/` one.
+
+In Next.js, for example, `security.txt` can be a dynamic route that serves the content with the correct `Content-Type` — as VulnexusAI does on its own site.
+
+## Common mistakes
+
+- **Using robots.txt to "hide" sensitive content**: it is public; real access must be blocked at the server.
+- **Blocking your own indexing**: `Disallow: /` without reason takes the page out of Google.
+- **Forgetting the `Sitemap` line**: the file points crawlers to your canonical URLs.
+- **security.txt without `Contact` or `Expires`**: the standard requires both for the file to be considered valid.
+- **Letting `Expires` lapse**: an expired file is treated as nonexistent by several tools.
+- **Serving the file only at the root or only at `.well-known`**: the standard recommends the `.well-known` route, with a redirect from the root when possible.
+- **Ignoring the content**: a `security.txt` pointing to an outdated email is worse than having no file.
+
+## How to check it
+
+The VulnexusAI scanner includes both in the "Content & Metadata" category: it checks whether `/robots.txt`, `/sitemap.xml` and `/.well-known/security.txt` exist and respond with status 200. Missing one? The report shows exactly which and how to create it.

@@ -131,7 +131,7 @@
   },
   "blog": {
     "metaTitle": "Blog | VulnexusAI",
-    "metaDescription": "Guias e artigos de segurança web em português: HSTS, Content-Security-Policy, SPF/DKIM/DMARC, cookies seguros e arquivos expostos.",
+    "metaDescription": "Guias e artigos de segurança web em português: HSTS, Content-Security-Policy, CORS, TLS, SPF/DKIM/DMARC, cookies seguros, robots.txt e arquivos expostos.",
     "eyebrow": "VULNEXUSAI · BLOG",
     "titulo": "Central de conteúdo",
     "sub": "Guias práticos de segurança web para desenvolvedores e donos de sites.",

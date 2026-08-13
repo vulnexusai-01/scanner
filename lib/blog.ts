@@ -17,14 +17,20 @@ export const PARES_DE_ARTIGOS: ReadonlyArray<{ pt: string; en: string }> = [
   { pt: "spf-dkim-dmarc-guia-completo", en: "spf-dkim-dmarc-complete-guide" },
   { pt: "cookies-seguros-secure-httponly-samesite", en: "secure-cookies-secure-httponly-samesite" },
   { pt: "arquivos-sensiveis-expostos", en: "sensitive-files-exposed" },
+  { pt: "cors-o-que-e-e-como-configurar", en: "cors-what-it-is-and-how-to-configure" },
+  { pt: "tls-versoes-tls-12-e-tls-13", en: "tls-versions-tls-12-and-tls-13" },
+  { pt: "robots-txt-e-security-txt", en: "robots-txt-and-security-txt" },
 ];
 
 const RELACIONADOS: Record<string, string[]> = {
-  "o-que-e-hsts": ["content-security-policy-explicada", "cookies-seguros-secure-httponly-samesite"],
-  "content-security-policy-explicada": ["o-que-e-hsts", "cookies-seguros-secure-httponly-samesite"],
+  "o-que-e-hsts": ["tls-versoes-tls-12-e-tls-13", "content-security-policy-explicada"],
+  "content-security-policy-explicada": ["cors-o-que-e-e-como-configurar", "cookies-seguros-secure-httponly-samesite"],
   "spf-dkim-dmarc-guia-completo": ["o-que-e-hsts", "cookies-seguros-secure-httponly-samesite"],
-  "cookies-seguros-secure-httponly-samesite": ["content-security-policy-explicada", "o-que-e-hsts"],
-  "arquivos-sensiveis-expostos": ["o-que-e-hsts", "content-security-policy-explicada"],
+  "cookies-seguros-secure-httponly-samesite": ["cors-o-que-e-e-como-configurar", "content-security-policy-explicada"],
+  "arquivos-sensiveis-expostos": ["robots-txt-e-security-txt", "o-que-e-hsts"],
+  "cors-o-que-e-e-como-configurar": ["content-security-policy-explicada", "cookies-seguros-secure-httponly-samesite"],
+  "tls-versoes-tls-12-e-tls-13": ["o-que-e-hsts", "cors-o-que-e-e-como-configurar"],
+  "robots-txt-e-security-txt": ["arquivos-sensiveis-expostos", "o-que-e-hsts"],
 };
 
 const BASE = path.join(process.cwd(), "content", "blog");

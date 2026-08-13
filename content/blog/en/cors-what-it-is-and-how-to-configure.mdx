@@ -1,0 +1,85 @@
+---
+titulo: "CORS explained: what it is and how to configure it safely"
+descricao: "CORS decides whether a website can access resources from another origin. Understand how it works, which configurations are dangerous (origin reflection, wildcard with credentials) and how to configure it."
+data: "2026-08-13"
+slug: "cors-what-it-is-and-how-to-configure"
+---
+
+CORS (Cross-Origin Resource Sharing) is a browser mechanism that decides whether a website can access resources from another origin — an API, an image or a script on a different domain. Misconfigured, it opens the site to abuse; configured well, it stays invisible. It is also one of the areas where the most common mistakes are the most dangerous.
+
+## What CORS is
+
+When JavaScript from `site-a.com` tries to fetch a resource from `api-b.com`, the browser applies the same-origin policy: by default, the request is blocked. CORS is the exception declared by the server itself: `api-b.com` responds with headers authorizing `site-a.com` to read the response.
+
+The main headers are:
+
+- `Access-Control-Allow-Origin` — which origins may access the resource (`https://site-a.com` or `*`).
+- `Access-Control-Allow-Credentials` — whether cookies and credentials can be sent.
+- `Access-Control-Allow-Methods` — allowed methods (`GET`, `POST`, etc.).
+- `Access-Control-Allow-Headers` — allowed request headers.
+- `Access-Control-Max-Age` — how long the browser may reuse the preflight result.
+
+## How it works in practice
+
+For requests that can cause side effects (methods other than simple `GET`/`POST`, or custom headers), the browser first sends a preparation request called preflight, with the `OPTIONS` method. The server answers which origins, methods and headers it accepts, and only then the browser sends the real request.
+
+For simple requests there is no preflight: the browser just checks the `Access-Control-Allow-Origin` header on the actual response.
+
+The key point: **the blocking happens in the browser, not on the server.** The server sends the resources normally; the browser is the one that prevents JavaScript from another origin from reading the response. This protects the user, not the server.
+
+## Dangerous configurations
+
+Two configurations lead the list of failures in security audits:
+
+**Wildcard with credentials** — combining `Access-Control-Allow-Origin: *` with `Access-Control-Allow-Credentials: true`. Browsers reject the combination, but many servers emit it anyway, breaking both security and functionality at the same time. With credentials, the origin must be explicit, never `*`.
+
+**Origin reflection** — the server echoes back any `Origin` header value it receives:
+
+```js
+res.setHeader("Access-Control-Allow-Origin", request.headers.origin);
+```
+
+This way, any malicious site can send `Origin: https://evil-site.com` and receive authorization to read the response — including with credentials when combined with `Allow-Credentials`. This is the pattern exploited in CORS abuse attacks.
+
+## How to configure it
+
+**Express (Node.js):**
+
+```js
+const allowedOrigins = ["https://site-a.com", "https://app.site-a.com"];
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  next();
+});
+```
+
+**nginx:**
+
+```nginx
+location /api {
+  if ($http_origin = "https://site-a.com") {
+    add_header Access-Control-Allow-Origin $http_origin;
+    add_header Access-Control-Allow-Credentials true;
+  }
+}
+```
+
+**General rule:** keep a fixed allowlist of known origins. If the resource is public and uses no credentials, `Access-Control-Allow-Origin: *` is acceptable — but never with `Allow-Credentials`.
+
+## Common mistakes
+
+- **Reflecting the received `Origin`**: any site gets access. Use an allowlist.
+- **`*` with `Allow-Credentials: true`**: invalid and dangerous; browsers reject it.
+- **Wildcard on authenticated APIs**: resources that use session cookies need explicit origins.
+- **Opening CORS to everything "to keep it simple"**: you lose the browser's origin boundary.
+- **Testing only with curl**: curl does not apply origin policy; what matters is browser behavior.
+- **Leaking internal origins**: admin, staging or intranet origins should never appear in the allowlist.
+
+## How to check it
+
+The VulnexusAI scanner tests the site with a sample `Origin` and checks three things: the wildcard-with-credentials combination, whether the sent origin is reflected back, and the behavior for public resources. Every failure comes with the suggested fix in the report.

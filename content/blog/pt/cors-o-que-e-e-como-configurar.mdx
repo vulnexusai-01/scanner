@@ -1,0 +1,85 @@
+---
+titulo: "CORS explicado: o que é e como configurar com segurança"
+descricao: "O CORS controla se um site pode acessar recursos de outro. Entenda como funciona, quais configurações são perigosas (reflexão de origem, wildcard com credenciais) e como configurar."
+data: "2026-08-13"
+slug: "cors-o-que-e-e-como-configurar"
+---
+
+O CORS (Cross-Origin Resource Sharing) é um mecanismo do navegador que decide se um site pode acessar recursos de outro — uma API, uma imagem ou um script em um domínio diferente. Configurado errado, ele abre o site para abuso; configurado bem, ele é invisível. É uma das áreas onde os erros mais comuns são justamente os mais perigosos.
+
+## O que é CORS
+
+Quando o JavaScript de `site-a.com` tenta buscar um recurso de `api-b.com`, o navegador aplica a política de mesma origem: por padrão, a requisição é bloqueada. O CORS é a exceção declarada pelo próprio servidor: `api-b.com` responde com headers autorizando `site-a.com` a ler a resposta.
+
+Os headers principais são:
+
+- `Access-Control-Allow-Origin` — quais origens podem acessar o recurso (`https://site-a.com` ou `*`).
+- `Access-Control-Allow-Credentials` — se cookies e credenciais podem ser enviados.
+- `Access-Control-Allow-Methods` — métodos permitidos (`GET`, `POST`, etc.).
+- `Access-Control-Allow-Headers` — headers de requisição permitidos.
+- `Access-Control-Max-Age` — por quanto tempo o navegador pode usar o resultado do preflight.
+
+## Como funciona na prática
+
+Para requisições que podem causar efeitos colaterais (métodos diferentes de `GET`/`POST` simples, ou uso de cabeçalhos customizados), o navegador envia antes uma requisição de preparação chamada preflight, com o método `OPTIONS`. O servidor responde quais origens, métodos e headers aceita, e só então o navegador envia a requisição real.
+
+Para requisições simples, não há preflight: o navegador apenas verifica o `Access-Control-Allow-Origin` na resposta de verdade.
+
+O ponto central: **o bloqueio acontece no navegador**, não no servidor. O servidor envia os recursos normalmente; o navegador é quem impede o JavaScript de outra origem de ler a resposta. Isso protege o usuário, não o servidor.
+
+## Configurações perigosas
+
+Duas configurações são as campeãs de falhas em auditorias:
+
+**Wildcard com credenciais** — combinar `Access-Control-Allow-Origin: *` com `Access-Control-Allow-Credentials: true`. Os navegadores até rejeitam a combinação, mas muitos servidores a emitem mesmo assim, quebrando a segurança e o funcionamento ao mesmo tempo. Com credenciais, a origem precisa ser explícita, nunca `*`.
+
+**Reflexão de origem** — o servidor espelha de volta qualquer valor do header `Origin` que receber:
+
+```js
+res.setHeader("Access-Control-Allow-Origin", request.headers.origin);
+```
+
+Assim, qualquer site malicioso pode enviar `Origin: https://site-malicioso.com` e receber autorização para ler a resposta — inclusive com credenciais, quando combinado com o Allow-Credentials. Esse é o padrão explorado em ataques de abuso de CORS.
+
+## Como configurar
+
+**Express (Node.js):**
+
+```js
+const origensPermitidas = ["https://site-a.com", "https://app.site-a.com"];
+
+app.use((req, res, next) => {
+  const origem = req.headers.origin;
+  if (origensPermitidas.includes(origem)) {
+    res.setHeader("Access-Control-Allow-Origin", origem);
+  }
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  next();
+});
+```
+
+**nginx:**
+
+```nginx
+location /api {
+  if ($http_origin = "https://site-a.com") {
+    add_header Access-Control-Allow-Origin $http_origin;
+    add_header Access-Control-Allow-Credentials true;
+  }
+}
+```
+
+**Regra geral:** monte uma lista fixa de origens conhecidas. Se o recurso é público e não usa credenciais, `Access-Control-Allow-Origin: *` é aceitável — mas sem `Allow-Credentials`.
+
+## Erros comuns
+
+- **Refletir o `Origin` recebido**: qualquer site passa a ter acesso. Use uma allowlist.
+- **`*` com `Allow-Credentials: true`**: configuração inválida e perigosa; navegadores rejeitam.
+- **Wildcard em APIs autenticadas**: recursos que usam cookies de sessão precisam de origens explícitas.
+- **Abrir CORS para tudo "para simplificar"**: o custo é perder o limite de origem do navegador.
+- **Testar só com curl**: o curl não aplica política de origem; o que vale é o comportamento no navegador.
+- **Vazar origens internas**: origens de administração, staging ou intranet não devem aparecer na allowlist.
+
+## Como verificar
+
+O scanner da VulnexusAI testa o site com um `Origin` de exemplo e verifica três coisas: a combinação de wildcard com credenciais, a reflexão da origem enviada e o comportamento com recursos públicos. Cada falha vem com a correção indicada no relatório.

@@ -1,0 +1,84 @@
+---
+titulo: "robots.txt e security.txt: arquivos que todo site deveria ter"
+descricao: "robots.txt orienta crawlers sobre o que indexar; security.txt diz a pesquisadores como reportar vulnerabilidades. Veja como criar um bom arquivo de cada um."
+data: "2026-08-17"
+slug: "robots-txt-e-security-txt"
+---
+
+Dois arquivos pequenos fazem uma diferença grande na operação de um site: `robots.txt` e `security.txt`. Um diz aos buscadores o que indexar; o outro diz a pesquisadores de segurança como reportar problemas. Os dois são públicos, os dois são checados por auditores — e os dois são fáceis de criar corretamente.
+
+## O que é robots.txt
+
+O `robots.txt` é um arquivo de texto na raiz do site que orienta os crawlers (Google, Bing, e outros) sobre o que acessar e indexar. Ele **não é um controle de acesso** — é uma recomendação. Um link pode continuar acessível mesmo sem aparecer no arquivo.
+
+Exemplo básico:
+
+```
+User-agent: *
+Disallow: /admin/
+Disallow: /api/private
+Allow: /public/
+Sitemap: https://seu-site.com/sitemap.xml
+```
+
+- `User-agent` — a qual crawler a regra se aplica (`*` para todos).
+- `Disallow` — caminhos que o crawler não deve acessar.
+- `Allow` — exceções a regras de bloqueio anteriores.
+- `Sitemap` — aponta para o sitemap.xml do site.
+
+Erro clássico: esconder conteúdo sensível no `robots.txt`. Ele é um arquivo público — qualquer pessoa pode lê-lo e acessar diretamente as URLs listadas. Para proteger de verdade, bloqueie no servidor (auth, regras de acesso) e trate o `robots.txt` apenas como orientação de indexação.
+
+## O que é security.txt
+
+O `security.txt` é o padrão (RFC 9116) para informar como entrar em contato com a equipe de segurança de um site. Ele segue o mesmo espírito do `robots.txt`: um arquivo público, em local previsível, que automatiza o fluxo de reportes de vulnerabilidades.
+
+O local padrão é:
+
+```
+https://seu-site.com/.well-known/security.txt
+```
+
+Exemplo:
+
+```
+Contact: mailto:security@seu-site.com
+Expires: 2027-01-01T00:00:00.000Z
+Preferred-Languages: pt, en
+```
+
+- `Contact` — canal para reportar vulnerabilidades (e-mail, URL, página).
+- `Expires` — data de validade do arquivo, em formato ISO 8601. Sem ele, alguns consumidores tratam o arquivo como inválido.
+- `Preferred-Languages` — idiomas aceitos para o relato.
+- `Encryption` — opcional, para chave PGP de contato.
+- `Policy` — opcional, link para a política de divulgação do projeto.
+
+Sem um `security.txt` (ou com `Expires` ausente/vazio), pesquisadores podem ter dificuldade de saber para onde reportar — e o reporte acaba indo para canais errados ou não acontecendo.
+
+## Como criar
+
+**robots.txt** — na raiz do site (`/robots.txt`), com regras mínimas:
+
+```
+User-agent: *
+Disallow: /admin/
+Disallow: /private/
+Sitemap: https://seu-site.com/sitemap.xml
+```
+
+**security.txt** — em `/.well-known/security.txt`, servido com `Content-Type: text/plain`, preferencialmente com um `security.txt` na raiz que redirecione para o `/.well-known/`.
+
+No Next.js, por exemplo, o `security.txt` pode ser uma rota dinâmica que serve o conteúdo com o `Content-Type` correto — como a VulnexusAI faz no próprio site.
+
+## Erros comuns
+
+- **Usar robots.txt para "esconder" conteúdo sensível**: ele é público; o acesso real precisa ser bloqueado no servidor.
+- **Bloquear a própria indexação**: `Disallow: /` sem motivo é página fora do Google.
+- **Esquecer o `Sitemap`**: o arquivo aponta o crawler para as URLs canônicas.
+- **security.txt sem `Contact` ou sem `Expires`**: o padrão exige ambos para o arquivo ser considerado válido.
+- **Esquecer o `Expires` no tempo**: arquivo expirado é tratado como inexistente por várias ferramentas.
+- **Colocar o arquivo apenas na raiz ou apenas no `.well-known`**: o padrão recomenda a rota `.well-known`, com redirecionamento a partir da raiz quando possível.
+- **Ignorar o conteúdo**: um `security.txt` que aponta para um e-mail desatualizado é pior que não ter arquivo.
+
+## Como verificar
+
+O scanner da VulnexusAI inclui os dois na categoria "Conteúdo e Metadados": ele verifica se `/robots.txt`, `/sitemap.xml` e `/.well-known/security.txt` existem e respondem com status 200. Faltou algum? O relatório mostra exatamente qual e como criar.
