@@ -9,32 +9,35 @@ export function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const isDev = process.env.NODE_ENV === "development";
   const csp = `
-    default-src 'self';
+    default-src 'none';
     script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""};
     style-src 'self' 'nonce-${nonce}';
     img-src 'self' data:;
     font-src 'self';
+    connect-src 'self';
     object-src 'none';
     base-uri 'self';
     form-action 'self';
     frame-ancestors 'none';
     upgrade-insecure-requests;
+    report-to csp-endpoint;
   `
     .replace(/\s{2,}/g, " ")
     .trim();
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
-  requestHeaders.set("Content-Security-Policy", csp);
 
-  const response = handleI18nRouting(request);
-
-  if (!response) {
-    return NextResponse.next({ request: { headers: requestHeaders } });
-  }
+  const response =
+    handleI18nRouting(request) ??
+    NextResponse.next({ request: { headers: requestHeaders } });
 
   response.headers.set("Content-Security-Policy", csp);
   response.headers.set("x-nonce", nonce);
+  response.headers.set("Cross-Origin-Resource-Policy", "same-origin");
+  response.headers.set("Cross-Origin-Opener-Policy", "same-origin");
+  response.headers.set("Cross-Origin-Embedder-Policy", "require-corp");
+  response.headers.set("Reporting-Endpoints", 'csp-endpoint="/api/csp-report"');
   response.cookies.set("vx_nonce", nonce, {
     httpOnly: true,
     sameSite: "lax",
