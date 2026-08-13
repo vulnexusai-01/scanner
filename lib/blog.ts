@@ -25,9 +25,10 @@ export function caminhoArtigo(locale: LocaleArtigo, slug: string): string {
   return path.join(BASE, locale, `${slug}.mdx`);
 }
 
-export function artigoCompleto(locale: LocaleArtigo, slug: string) {
+export function artigoCompleto(locale: LocaleArtigo, slug: string): { data: FrontmatterArtigo; content: string } {
   const conteudo = readFileSync(caminhoArtigo(locale, slug), "utf8");
-  return matter<FrontmatterArtigo>(conteudo);
+  const { data, content } = matter(conteudo);
+  return { data: data as FrontmatterArtigo, content };
 }
 
 export function listarArtigos(locale: LocaleArtigo): Array<{ slug: string; frontmatter: FrontmatterArtigo }> {

@@ -108,7 +108,7 @@ export default async function ArtigoPage({ params }: Props) {
         <div className="artigo-corpo">{corpo}</div>
         {pares && (
           <p className="artigo-outro-idioma">
-            <Link href={`/blog/${pares[idiomaAlternativo]}`}>
+            <Link href={`/blog/${idiomaAlternativo === "pt" ? pares.slugPt : pares.slugEn}`}>
               {t("lerEmOutroIdioma", { idioma: tRoot(`langSwitcher.${idiomaAlternativo}`) })}
             </Link>
           </p>
