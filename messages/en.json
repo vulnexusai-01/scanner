@@ -37,7 +37,12 @@
     "placeholder": "e.g. example.com",
     "ariaLabel": "URL of the website to check",
     "verificar": "Check",
-    "verificando": "Checking..."
+    "verificando": "Checking...",
+    "metricas": {
+      "tempo": "Score in seconds",
+      "cadastro": "No signup",
+      "relatorio": "Comparable report"
+    }
   },
   "erros": {
     "protocolo-invalido": "Only http/https URLs are accepted.",

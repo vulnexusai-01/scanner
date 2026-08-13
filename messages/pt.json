@@ -37,7 +37,12 @@
     "placeholder": "ex.: exemplo.com.br",
     "ariaLabel": "URL do site a verificar",
     "verificar": "Verificar",
-    "verificando": "Verificando..."
+    "verificando": "Verificando...",
+    "metricas": {
+      "tempo": "Score em segundos",
+      "cadastro": "Sem cadastro",
+      "relatorio": "Relatório comparável"
+    }
   },
   "erros": {
     "protocolo-invalido": "Somente URLs http/https são aceitas.",

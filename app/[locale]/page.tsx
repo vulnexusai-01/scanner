@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore, useState } from "react";
+import { useSyncExternalStore, useState, type CSSProperties } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { calculaFracaoCategoria } from "@/lib/fracao-categoria";
 import type { Categoria, ItemCheck, ResultadoCheck, StatusItem } from "@/lib/verificador";
@@ -530,7 +530,10 @@ export default function Home() {
       <Topo mostraHistorico={historico.length > 0} />
 
       <section className="hero" id="verificar">
-        <p className="eyebrow">{t("hero.eyebrow")}</p>
+        <p className="eyebrow">
+          <span className="dot" />
+          {t("hero.eyebrow")}
+        </p>
         <h1>
           {t("hero.titulo1")}
           <br />
@@ -538,25 +541,50 @@ export default function Home() {
         </h1>
         <p className="sub">{t("hero.sub")}</p>
         <form
-          className="form"
+          className="console"
           onSubmit={e => {
             e.preventDefault();
             verificar();
           }}
         >
-          <input
-            id="input-url"
-            type="text"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            placeholder={t("hero.placeholder")}
-            aria-label={t("hero.ariaLabel")}
-            disabled={carregando}
-          />
-          <button type="submit" disabled={carregando}>
-            {carregando ? t("hero.verificando") : t("hero.verificar")}
-          </button>
+          <div className="console-inner">
+            <span className="console-prefix">&gt;</span>
+            <input
+              id="input-url"
+              type="text"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              placeholder={t("hero.placeholder")}
+              aria-label={t("hero.ariaLabel")}
+              disabled={carregando}
+            />
+            <button type="submit" disabled={carregando}>
+              {carregando ? t("hero.verificando") : `${t("hero.verificar")} →`}
+            </button>
+          </div>
         </form>
+        <div className="metrics-row">
+          <div className="metric">
+            <svg viewBox="0 0 24 24" fill="none" strokeWidth="2">
+              <path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z" />
+            </svg>
+            {t("hero.metricas.tempo")}
+          </div>
+          <div className="metric">
+            <svg viewBox="0 0 24 24" fill="none" strokeWidth="2">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 7v5l3 3" />
+            </svg>
+            {t("hero.metricas.cadastro")}
+          </div>
+          <div className="metric">
+            <svg viewBox="0 0 24 24" fill="none" strokeWidth="2">
+              <path d="M4 4h16v16H4z" />
+              <path d="M4 9h16" />
+            </svg>
+            {t("hero.metricas.relatorio")}
+          </div>
+        </div>
       </section>
 
       {erro && (
@@ -576,8 +604,13 @@ export default function Home() {
                   className="hist-chip"
                   title={`${h.url} — ${h.score}`}
                 >
+                  <span
+                    className={`ring ${h.score >= 70 ? "good" : "mid"}`}
+                    style={{ "--v": h.score } as CSSProperties}
+                  >
+                    <span>{h.score}</span>
+                  </span>
                   <span className="hist-url">{h.url}</span>
-                  <span className={`hist-score ${classeScore(h.score)}`}>{h.score}</span>
                 </button>
               </li>
             ))}

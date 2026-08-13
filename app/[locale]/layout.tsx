@@ -4,8 +4,12 @@ import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { hasLocale } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import { routing } from "@/i18n/routing";
 import "../globals.css";
+
+const inter = Inter({ subsets: ["latin"], variable: "--sans", display: "swap" });
+const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--mono", display: "swap" });
 
 export function generateStaticParams() {
   return routing.locales.map(locale => ({ locale }));
@@ -89,7 +93,7 @@ export default async function RootLayout({ params, children }: Props) {
 
   return (
     <html lang={locale}>
-      <body>
+      <body className={`${inter.variable} ${jetbrainsMono.variable}`}>
         <script
           type="application/ld+json"
           nonce={nonce}

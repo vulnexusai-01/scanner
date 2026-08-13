@@ -10,19 +10,30 @@ export default function Topo({ mostraHistorico = false }: { mostraHistorico?: bo
   const pathname = usePathname();
 
   const naHome = pathname === "/";
+  const noBlog = pathname.startsWith("/blog");
   const verificarHref = naHome ? "#verificar" : "/#verificar";
   const historicoHref = naHome ? "#historico" : "/#historico";
 
   return (
     <header className="topo">
       <Link href="/" className="logo">
-        <img src="/vulnexusai.svg" alt="VulnexusAI" className="logo-img" width={34} height={34} />
-        <span className="logo-txt">Vulnexus<span>AI</span></span>
+        <span className="logo-mark">V</span>
+        <span className="logo-txt">
+          Vulnexus<span>AI</span>
+        </span>
       </Link>
       <nav>
-        <Link href={verificarHref} className="nav-link">{t("nav.verificar")}</Link>
-        {mostraHistorico && <Link href={historicoHref} className="nav-link">{t("nav.historico")}</Link>}
-        <Link href="/blog" className="nav-link">{t("nav.blog")}</Link>
+        <Link href={verificarHref} className={`nav-link${naHome ? " active" : ""}`}>
+          {t("nav.verificar")}
+        </Link>
+        {mostraHistorico && (
+          <Link href={historicoHref} className="nav-link">
+            {t("nav.historico")}
+          </Link>
+        )}
+        <Link href="/blog" className={`nav-link${noBlog ? " active" : ""}`}>
+          {t("nav.blog")}
+        </Link>
         <span className="lang-toggle">
           <button
             type="button"
