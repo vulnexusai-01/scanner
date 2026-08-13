@@ -208,11 +208,18 @@ function textoItem(t: Traduz, locale: string, item: ItemCheck) {
   };
 }
 
+function quebraLabel(texto: string): string[] {
+  const palavras = texto.split(" ");
+  if (texto.length <= 12 || palavras.length < 2) return [texto];
+  const meio = Math.ceil(palavras.length / 2);
+  return [palavras.slice(0, meio).join(" "), palavras.slice(meio).join(" ")];
+}
+
 function Radar({ categorias }: { categorias: Categoria[] }) {
   const t = useTranslations();
-  const cx = 160;
-  const cy = 150;
-  const raioMax = 92;
+  const cx = 175;
+  const cy = 170;
+  const raioMax = 75;
   const n = categorias.length;
   if (n === 0) return null;
 
@@ -236,13 +243,14 @@ function Radar({ categorias }: { categorias: Categoria[] }) {
   }).join(" ");
 
   const labels = categorias.map((c, i) => {
-    const p = ponto(i, raioMax + 30);
-    const ancora: "start" | "end" | "middle" = p.x > cx + 8 ? "start" : p.x < cx - 8 ? "end" : "middle";
-    return { x: p.x, y: p.y, texto: t(`categorias.${c.id}`), ancora };
+    const p = ponto(i, raioMax + 26);
+    const ancora: "start" | "middle" | "end" =
+      p.x > cx + 8 ? "start" : p.x < cx - 8 ? "end" : "middle";
+    return { x: p.x, y: p.y, linhas: quebraLabel(t(`categorias.${c.id}`)), ancora };
   });
 
   return (
-    <svg viewBox="0 0 320 300" role="img" aria-label={t("resultado.radarAria")}>
+    <svg viewBox="0 0 350 340" role="img" aria-label={t("resultado.radarAria")}>
       {[0.25, 0.5, 0.75, 1].map(f => (
         <polygon key={f} points={poligonoGrid(f)} fill="none" stroke="#26364f" strokeWidth="1" />
       ))}
@@ -252,8 +260,16 @@ function Radar({ categorias }: { categorias: Categoria[] }) {
         return <circle key={i} cx={p.x} cy={p.y} r="3" fill="#3b82f6" />;
       })}
       {labels.map((l, i) => (
-        <text key={i} x={l.x} y={l.y} textAnchor={l.ancora} dominantBaseline="middle" fill="#8fa1c0" fontSize="10">
-          {l.texto}
+        <text key={i} x={l.x} y={l.y} textAnchor={l.ancora} fill="#8fa1c0" fontSize="10">
+          {l.linhas.map((linha, li) => (
+            <tspan
+              key={li}
+              x={l.x}
+              dy={li === 0 ? -((l.linhas.length - 1) * 5.5) : 11}
+            >
+              {linha}
+            </tspan>
+          ))}
         </text>
       ))}
     </svg>
