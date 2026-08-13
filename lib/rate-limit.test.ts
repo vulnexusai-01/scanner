@@ -43,11 +43,14 @@ describe("checaRateLimit (fallback em memória)", () => {
     await expect(checaRateLimit("192.0.2.40", "verificar")).resolves.toEqual({ permitido: true, retryEmSegundos: 0 });
   });
 
-  it("aplica limite maior para o badge", async () => {
-    for (let i = 0; i < 15; i++) {
+  it("limita o contexto badge a 25 requisições por janela", async () => {
+    for (let i = 0; i < 25; i++) {
       const resultado = await checaRateLimit("192.0.2.50", "badge");
       expect(resultado.permitido).toBe(true);
     }
+    const bloqueado = await checaRateLimit("192.0.2.50", "badge");
+    expect(bloqueado.permitido).toBe(false);
+    expect(bloqueado.retryEmSegundos).toBeGreaterThan(0);
   });
 
   it("mantém contadores independentes entre contextos", async () => {
