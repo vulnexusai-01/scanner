@@ -605,7 +605,7 @@ export default function Home() {
                   title={`${h.url} — ${h.score}`}
                 >
                   <span
-                    className={`ring ${h.score >= 70 ? "good" : "mid"}`}
+                    className={`ring ${h.score >= 85 ? "good" : h.score >= 60 ? "mid" : "low"}`}
                     style={{ "--v": h.score } as CSSProperties}
                   >
                     <span>{h.score}</span>
