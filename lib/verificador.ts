@@ -444,6 +444,12 @@ export function statusDosItens(itens: ItemCheck[]): number {
   return Math.round((ok / pontuados.length) * 100);
 }
 
+export function calculaFracaoCategoria(itens: ItemCheck[]): { ok: number; total: number; frac: number } {
+  const ok = itens.filter(i => i.status === "ok").length;
+  const total = itens.filter(i => i.status !== "aviso").length;
+  return { ok, total, frac: statusDosItens(itens) };
+}
+
 async function checaArquivoSensivel(urlBase: string, caminho: string): Promise<StatusItem> {
   const alvo = new URL(caminho, urlBase);
   try {

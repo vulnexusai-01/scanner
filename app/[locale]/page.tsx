@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { calculaFracaoCategoria } from "@/lib/verificador";
 import type { Categoria, ItemCheck, ResultadoCheck, StatusItem } from "@/lib/verificador";
 import Topo from "./components/topo";
 import Rodape from "./components/rodape";
@@ -215,9 +216,7 @@ function Radar({ categorias }: { categorias: Categoria[] }) {
 function BarraCategoria({ categoria }: { categoria: Categoria }) {
   const t = useTranslations();
   const locale = useLocale();
-  const ok = categoria.itens.filter(x => x.status === "ok").length;
-  const total = categoria.itens.filter(x => x.status !== "aviso").length;
-  const frac = total === 0 ? 100 : Math.round((ok / total) * 100);
+  const { frac } = calculaFracaoCategoria(categoria.itens);
 
   return (
     <div className="cat">
@@ -362,8 +361,8 @@ export default function Home() {
       }),
       "",
       ...resultado.categorias.flatMap(c => {
-        const ok = c.itens.filter(i => i.status === "ok").length;
-        return [t("compartilhar.categoria", { titulo: t(`categorias.${c.id}`), ok, total: c.itens.length })];
+        const { ok, total } = calculaFracaoCategoria(c.itens);
+        return [t("compartilhar.categoria", { titulo: t(`categorias.${c.id}`), ok, total })];
       }),
       "",
       t("compartilhar.chamada"),
@@ -419,9 +418,7 @@ export default function Home() {
     const corBarra = (frac: number) => (frac >= 85 ? "#16a34a" : frac >= 70 ? "#22c55e" : frac >= 50 ? "#d97706" : frac >= 30 ? "#ea580c" : "#dc2626");
 
     resultado.categorias.forEach((c, i) => {
-      const ok = c.itens.filter(x => x.status === "ok").length;
-      const total = c.itens.filter(x => x.status !== "aviso").length;
-      const frac = total === 0 ? 100 : Math.round((ok / total) * 100);
+      const { frac } = calculaFracaoCategoria(c.itens);
       const y = inicio + i * passo;
 
       ctx.fillStyle = "#e6edf7";

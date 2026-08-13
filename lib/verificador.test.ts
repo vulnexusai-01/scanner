@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { LookupAddress } from "node:dns";
-import { isIPPrivado, normalizaUrl, resolveHostPublico, statusDosItens, checaCors, VerificadorErro, type ItemCheck } from "./verificador";
+import { isIPPrivado, normalizaUrl, resolveHostPublico, statusDosItens, calculaFracaoCategoria, checaCors, VerificadorErro, type ItemCheck } from "./verificador";
 
 const { lookupMock, requestMock } = vi.hoisted(() => ({ lookupMock: vi.fn(), requestMock: vi.fn() }));
 
@@ -242,6 +242,28 @@ describe("statusDosItens", () => {
 
   it("retorna 100 quando só há avisos", () => {
     expect(statusDosItens(itens("aviso", "aviso"))).toBe(100);
+  });
+});
+
+describe("calculaFracaoCategoria", () => {
+  function itens(...status: Array<ItemCheck["status"]>): ItemCheck[] {
+    return status.map((s, i) => ({ id: `item-${i}`, status: s }));
+  }
+
+  it("retorna total 0 e frac 100 quando todos os itens estão em aviso", () => {
+    expect(calculaFracaoCategoria(itens("aviso", "aviso"))).toEqual({ ok: 0, total: 0, frac: 100 });
+  });
+
+  it("exclui itens em aviso do denominador", () => {
+    expect(calculaFracaoCategoria(itens("ok", "aviso"))).toEqual({ ok: 1, total: 1, frac: 100 });
+  });
+
+  it("calcula ok, total e frac corretamente", () => {
+    expect(calculaFracaoCategoria(itens("ok", "ok", "falha"))).toEqual({ ok: 2, total: 3, frac: 67 });
+  });
+
+  it("retorna frac 0 para lista vazia", () => {
+    expect(calculaFracaoCategoria([])).toEqual({ ok: 0, total: 0, frac: 0 });
   });
 });
 
