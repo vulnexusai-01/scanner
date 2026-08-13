@@ -17,7 +17,18 @@ export default function Topo({ mostraHistorico = false }: { mostraHistorico?: bo
   return (
     <header className="topo">
       <Link href="/" className="logo">
-        <span className="logo-mark">V</span>
+        <span className="logo-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M4 5L12 17L20 5"
+              stroke="var(--cyan)"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <circle cx="12" cy="19.5" r="1.4" fill="var(--cyan)" />
+          </svg>
+        </span>
         <span className="logo-txt">
           Vulnexus<span>AI</span>
         </span>

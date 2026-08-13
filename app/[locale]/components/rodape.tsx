@@ -8,8 +8,17 @@ export default function Rodape() {
   return (
     <footer className="footer">
       <div className="foot-logo">
-        <span className="logo-mark" style={{ width: 22, height: 22, fontSize: 11 }}>
-          V
+        <span className="logo-mark sm" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M4 5L12 17L20 5"
+              stroke="var(--cyan)"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <circle cx="12" cy="19.5" r="1.4" fill="var(--cyan)" />
+          </svg>
         </span>
         VulnexusAI
       </div>

@@ -99,18 +99,57 @@ body::before {
 }
 
 .logo-mark {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, var(--cyan), #6c5ce7);
+  position: relative;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--mono);
-  font-weight: 700;
-  color: #04120e;
-  font-size: 14px;
   flex-shrink: 0;
+}
+
+.logo-mark::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(from 0deg, var(--cyan), #6c5ce7, var(--coral), var(--cyan));
+  animation: spin 5s linear infinite;
+}
+
+.logo-mark::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  background: var(--bg-0);
+}
+
+.logo-mark,
+.logo-mark::before,
+.logo-mark::after {
+  clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0% 50%);
+}
+
+.logo-mark svg {
+  position: relative;
+  z-index: 2;
+  width: 15px;
+  height: 15px;
+}
+
+.logo-mark.sm {
+  width: 22px;
+  height: 22px;
+}
+
+.logo-mark.sm svg {
+  width: 11px;
+  height: 11px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .logo-txt span {
@@ -1331,7 +1370,8 @@ body::before {
 
 @media (prefers-reduced-motion: reduce) {
   .console::before,
-  .eyebrow .dot {
+  .eyebrow .dot,
+  .logo-mark::before {
     animation: none;
   }
 }
