@@ -210,9 +210,9 @@ function textoItem(t: Traduz, locale: string, item: ItemCheck) {
 
 function Radar({ categorias }: { categorias: Categoria[] }) {
   const t = useTranslations();
-  const cx = 150;
+  const cx = 160;
   const cy = 150;
-  const raioMax = 110;
+  const raioMax = 92;
   const n = categorias.length;
   if (n === 0) return null;
 
@@ -236,12 +236,13 @@ function Radar({ categorias }: { categorias: Categoria[] }) {
   }).join(" ");
 
   const labels = categorias.map((c, i) => {
-    const p = ponto(i, raioMax + 24);
-    return { x: p.x, y: p.y, texto: t(`categorias.${c.id}`) };
+    const p = ponto(i, raioMax + 30);
+    const ancora: "start" | "end" | "middle" = p.x > cx + 8 ? "start" : p.x < cx - 8 ? "end" : "middle";
+    return { x: p.x, y: p.y, texto: t(`categorias.${c.id}`), ancora };
   });
 
   return (
-    <svg viewBox="0 0 300 280" role="img" aria-label={t("resultado.radarAria")}>
+    <svg viewBox="0 0 320 300" role="img" aria-label={t("resultado.radarAria")}>
       {[0.25, 0.5, 0.75, 1].map(f => (
         <polygon key={f} points={poligonoGrid(f)} fill="none" stroke="#26364f" strokeWidth="1" />
       ))}
@@ -251,7 +252,7 @@ function Radar({ categorias }: { categorias: Categoria[] }) {
         return <circle key={i} cx={p.x} cy={p.y} r="3" fill="#3b82f6" />;
       })}
       {labels.map((l, i) => (
-        <text key={i} x={l.x} y={l.y} textAnchor="middle" dominantBaseline="middle" fill="#8fa1c0" fontSize="10">
+        <text key={i} x={l.x} y={l.y} textAnchor={l.ancora} dominantBaseline="middle" fill="#8fa1c0" fontSize="10">
           {l.texto}
         </text>
       ))}
