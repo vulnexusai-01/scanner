@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "VulnexusAI — Website security check",
-    "description": "Check security headers, HTTPS, SSL certificate, email DNS and cookies with an automatic score and fix tips. Free tool from VulnexusAI.",
+    "description": "Check security headers, HTTPS, SSL certificate, email DNS, cookies and CORS with an automatic score and fix tips. Free tool from VulnexusAI.",
     "keywords": [
       "security check",
       "security scanner",
@@ -15,10 +15,10 @@
       "website vulnerability"
     ],
     "ogTitle": "VulnexusAI — Website security check",
-    "ogDescription": "Headers, HTTPS, SSL certificate, email DNS and cookies — with automatic score and fix tips.",
+    "ogDescription": "Headers, HTTPS, SSL certificate, email DNS, cookies and CORS — with automatic score and fix tips.",
     "twitterTitle": "VulnexusAI — Website security check",
-    "twitterDescription": "Headers, HTTPS, SSL certificate, email DNS and cookies — with automatic score and fix tips.",
-    "jsonLdDescription": "Free website security checking tool: HTTP headers, HTTPS, SSL certificate, email DNS and cookies with an automatic score."
+    "twitterDescription": "Headers, HTTPS, SSL certificate, email DNS, cookies and CORS — with automatic score and fix tips.",
+    "jsonLdDescription": "Free website security checking tool: HTTP headers, HTTPS, SSL certificate, email DNS, cookies and CORS with an automatic score."
   },
   "nav": {
     "verificar": "Check",
@@ -33,7 +33,7 @@
     "eyebrow": "VULNEXUSAI · SECURITY TOOL",
     "titulo1": "Security check",
     "titulo2": "in one click",
-    "sub": "Headers, HTTPS, SSL certificate, email DNS and cookies — with automatic score, comparison and fix tips.",
+    "sub": "Headers, HTTPS, SSL certificate, email DNS, cookies and CORS — with automatic score, comparison and fix tips.",
     "placeholder": "e.g. example.com",
     "ariaLabel": "URL of the website to check",
     "verificar": "Check",

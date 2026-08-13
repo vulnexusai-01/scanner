@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "VulnexusAI — Verificação de segurança de sites",
-    "description": "Verifique headers de segurança HTTP, HTTPS, certificado SSL, DNS de email e cookies com score automático e dicas de correção. Ferramenta gratuita da VulnexusAI.",
+    "description": "Verifique headers de segurança HTTP, HTTPS, certificado SSL, DNS de email, cookies e CORS com score automático e dicas de correção. Ferramenta gratuita da VulnexusAI.",
     "keywords": [
       "verificação de segurança",
       "scanner de segurança",
@@ -15,10 +15,10 @@
       "vulnerabilidade de site"
     ],
     "ogTitle": "VulnexusAI — Verificação de segurança de sites",
-    "ogDescription": "Headers, HTTPS, certificado SSL, DNS de email e cookies — com score automático e dicas de correção em português.",
+    "ogDescription": "Headers, HTTPS, certificado SSL, DNS de email, cookies e CORS — com score automático e dicas de correção em português.",
     "twitterTitle": "VulnexusAI — Verificação de segurança de sites",
-    "twitterDescription": "Headers, HTTPS, certificado SSL, DNS de email e cookies — com score automático e dicas de correção em português.",
-    "jsonLdDescription": "Ferramenta gratuita de verificação de segurança de sites: headers HTTP, HTTPS, certificado SSL, DNS de email e cookies com score automático."
+    "twitterDescription": "Headers, HTTPS, certificado SSL, DNS de email, cookies e CORS — com score automático e dicas de correção em português.",
+    "jsonLdDescription": "Ferramenta gratuita de verificação de segurança de sites: headers HTTP, HTTPS, certificado SSL, DNS de email, cookies e CORS com score automático."
   },
   "nav": {
     "verificar": "Verificar",
@@ -33,7 +33,7 @@
     "eyebrow": "VULNEXUSAI · FERRAMENTA DE SEGURANÇA",
     "titulo1": "Verificação de segurança",
     "titulo2": "em um clique",
-    "sub": "Headers, HTTPS, certificado SSL, DNS de email e cookies — com score automático, comparação e dicas de correção.",
+    "sub": "Headers, HTTPS, certificado SSL, DNS de email, cookies e CORS — com score automático, comparação e dicas de correção.",
     "placeholder": "ex.: exemplo.com.br",
     "ariaLabel": "URL do site a verificar",
     "verificar": "Verificar",
