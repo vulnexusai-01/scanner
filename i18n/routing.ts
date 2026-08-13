@@ -6,8 +6,9 @@ export const routing = defineRouting({
   localePrefix: "as-needed",
   localeCookie: {
     name: "NEXT_LOCALE",
+    httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-  },
+  } as Parameters<typeof defineRouting>[0]["localeCookie"],
 });
