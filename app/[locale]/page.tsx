@@ -278,7 +278,22 @@ export default function Home() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(CHAVE_HISTORICO);
-      if (raw) setHistorico(JSON.parse(raw) as ItemHistorico[]);
+      if (raw) {
+        const itens = JSON.parse(raw) as ItemHistorico[];
+        const validos = itens.filter(
+          (h): h is ItemHistorico =>
+            !!h &&
+            typeof h.score === "number" &&
+            h.score > 0 &&
+            typeof h.grade === "string" &&
+            h.grade !== "-" &&
+            typeof h.url === "string"
+        );
+        if (validos.length !== itens.length) {
+          localStorage.setItem(CHAVE_HISTORICO, JSON.stringify(validos));
+        }
+        setHistorico(validos);
+      }
     } catch {
       /* ignore */
     }

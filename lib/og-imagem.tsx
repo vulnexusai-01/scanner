@@ -6,6 +6,8 @@ const fonte = readFile(
   join(process.cwd(), "node_modules/next/dist/compiled/@vercel/og/Geist-Regular.ttf")
 );
 
+const logo = readFile(join(process.cwd(), "public/vulnexusai.svg"));
+
 export const ALT = "VulnexusAI — Verificação de segurança de sites";
 
 export const TAMANHO = {
@@ -16,7 +18,8 @@ export const TAMANHO = {
 export const TIPO_CONTENT = "image/png";
 
 export async function gerarImagemOg(): Promise<ImageResponse> {
-  const data = await fonte;
+  const [dadosFonte, dadosLogo] = await Promise.all([fonte, logo]);
+  const logoSrc = `data:image/svg+xml;base64,${Buffer.from(dadosLogo).toString("base64")}`;
   return new ImageResponse(
     (
       <div
@@ -33,22 +36,12 @@ export async function gerarImagemOg(): Promise<ImageResponse> {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-          <div
-            style={{
-              width: 88,
-              height: 88,
-              borderRadius: 22,
-              background: "linear-gradient(135deg, #3b82f6, #7c3aed)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 48,
-              fontWeight: 700,
-              color: "#ffffff",
-            }}
-          >
-            V
-          </div>
+          <img
+            src={logoSrc}
+            width={88}
+            height={88}
+            style={{ display: "flex", boxShadow: "0 8px 32px rgba(59, 130, 246, 0.35)" }}
+          />
           <div style={{ fontSize: 68, fontWeight: 700, display: "flex" }}>
             Vulnexus
             <span style={{ color: "#3b82f6" }}>AI</span>
@@ -88,7 +81,7 @@ export async function gerarImagemOg(): Promise<ImageResponse> {
       fonts: [
         {
           name: "Geist",
-          data,
+          data: dadosFonte,
           style: "normal",
           weight: 400,
         },
