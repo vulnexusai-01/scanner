@@ -150,6 +150,31 @@
         }
       ]
     },
+    "seguranca": {
+      "metaTitle": "Segurança | VulnexusAI",
+      "metaDescription": "Canais de reporte de vulnerabilidades da VulnexusAI e como relatamos e corrigimos problemas de segurança.",
+      "eyebrow": "VULNEXUSAI · SEGURANÇA",
+      "titulo": "Divulgação responsável",
+      "resumo": "Encontrou uma vulnerabilidade na VulnexusAI? Obrigado! Veja como reportar com segurança e o que acontece depois.",
+      "secoes": [
+        {
+          "h": "Como reportar",
+          "p": "Seja objetivo: informe a URL afetada, o passo a passo para reproduzir e o impacto estimado. Não teste além do necessário, não explore dados de terceiros e não divulgue publicamente antes da correção."
+        },
+        {
+          "h": "O que acontece depois",
+          "p": "Confirmamos o recebimento, analisamos o relatório, corrigimos o problema e te damos retorno. Não oferecemos recompensas por bug bounty."
+        },
+        {
+          "h": "Canais de contato",
+          "p": "O canal de e-mail dedicado está sendo configurado. Enquanto isso, o ponto de contato oficial é esta página, referenciada no nosso arquivo security.txt em /.well-known/security.txt."
+        },
+        {
+          "h": "Escopo",
+          "p": "Esta página cobre o site vulnexusai.com e a ferramenta de verificação. Vulnerabilidades em sites verificados pela ferramenta devem ser reportadas aos responsáveis por cada site."
+        }
+      ]
+    },
     "privacidade": {
       "metaTitle": "Política de Privacidade | VulnexusAI",
       "metaDescription": "Saiba como a ferramenta gratuita de verificação de segurança da VulnexusAI processa dados: URL verificada, histórico local no navegador e cookies funcionais.",

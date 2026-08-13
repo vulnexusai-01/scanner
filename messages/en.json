@@ -150,6 +150,31 @@
         }
       ]
     },
+    "seguranca": {
+      "metaTitle": "Security | VulnexusAI",
+      "metaDescription": "VulnexusAI vulnerability disclosure channels and how we handle security reports.",
+      "eyebrow": "VULNEXUSAI · SECURITY",
+      "titulo": "Responsible disclosure",
+      "resumo": "Found a vulnerability in VulnexusAI? Thank you! Here is how to report it safely and what happens next.",
+      "secoes": [
+        {
+          "h": "How to report",
+          "p": "Be objective: include the affected URL, step-by-step reproduction and estimated impact. Do not test beyond what is necessary, do not access third-party data and do not disclose publicly before a fix."
+        },
+        {
+          "h": "What happens next",
+          "p": "We acknowledge your report, analyze it, fix the issue and get back to you. We do not offer bug bounty rewards."
+        },
+        {
+          "h": "Contact channels",
+          "p": "The dedicated email channel is being set up. In the meantime, the official contact point is this page, referenced in our security.txt file at /.well-known/security.txt."
+        },
+        {
+          "h": "Scope",
+          "p": "This page covers the vulnexusai.com website and the checking tool. Vulnerabilities in sites checked by the tool should be reported to the owners of each site."
+        }
+      ]
+    },
     "privacidade": {
       "metaTitle": "Privacy Policy | VulnexusAI",
       "metaDescription": "Learn how the free VulnexusAI security checker handles data: the URL you check, browser-only history and functional cookies.",

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { artigoCompleto, paresDeSlug, rotasBlog, type LocaleArtigo } from "@/lib/blog";
 
-const PAGINAS = ["sobre", "privacidade", "termos", "cookies"] as const;
+const PAGINAS = ["sobre", "seguranca", "privacidade", "termos", "cookies"] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const home: MetadataRoute.Sitemap[number] = {
