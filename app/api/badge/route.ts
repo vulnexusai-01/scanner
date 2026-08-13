@@ -1,8 +1,13 @@
 import { NextRequest } from "next/server";
-import { verificarSite } from "@/lib/verificador";
+import { normalizaUrl, verificarSite } from "@/lib/verificador";
 import { checaRateLimit, ipDaRequisicao } from "@/lib/rate-limit";
+import { cacheGet, cacheSet } from "@/lib/cache";
 
 export const maxDuration = 30;
+
+const TTL_CACHE_MS = 5 * 60 * 1000;
+
+type ResultadoBadge = { score: number | null; grade: string | null };
 
 function escapaXml(texto: string): string {
   return texto
@@ -45,7 +50,7 @@ function badgeSvg(score: number | null, grade: string | null): string {
 
 export async function GET(request: NextRequest) {
   const ip = ipDaRequisicao(request);
-  const limite = checaRateLimit(ip);
+  const limite = await checaRateLimit(ip);
   if (!limite.permitido) {
     return new Response("Muitas requisições. Tente novamente em instantes.", {
       status: 429,
@@ -61,9 +66,23 @@ export async function GET(request: NextRequest) {
   let score: number | null = null;
   let grade: string | null = null;
   try {
-    const resultado = await verificarSite(url);
-    score = resultado.score;
-    grade = resultado.grade;
+    const hostname = normalizaUrl(url).hostname;
+    const chave = `badge:${hostname}`;
+    const cacheado = await cacheGet(chave);
+    if (cacheado) {
+      let resultado: ResultadoBadge;
+      try {
+        resultado = JSON.parse(cacheado) as ResultadoBadge;
+      } catch {
+        resultado = await verificaENaCache(chave, url);
+      }
+      score = resultado.score;
+      grade = resultado.grade;
+    } else {
+      const resultado = await verificaENaCache(chave, url);
+      score = resultado.score;
+      grade = resultado.grade;
+    }
   } catch {
     score = null;
     grade = null;
@@ -76,4 +95,11 @@ export async function GET(request: NextRequest) {
       "access-control-allow-origin": "*",
     },
   });
+}
+
+async function verificaENaCache(chave: string, url: string): Promise<ResultadoBadge> {
+  const resultado = await verificarSite(url);
+  const badge: ResultadoBadge = { score: resultado.score, grade: resultado.grade };
+  await cacheSet(chave, JSON.stringify(badge), TTL_CACHE_MS);
+  return badge;
 }

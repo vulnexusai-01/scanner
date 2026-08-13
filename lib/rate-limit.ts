@@ -1,8 +1,30 @@
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+
 const JANELA_MS = 5 * 60 * 1000;
 const MAX_REQUISICOES = 10;
 const LIMITE_ENTRADAS = 5000;
 
-const mapa = new Map<string, number[]>();
+const mapaMemoria = new Map<string, number[]>();
+
+let rateLimitUpstash: Ratelimit | undefined;
+let rateLimitUpstashInicializado = false;
+
+function temUpstashConfigurado(): boolean {
+  return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+}
+
+function obtemRateLimitUpstash(): Ratelimit {
+  if (!rateLimitUpstashInicializado) {
+    rateLimitUpstashInicializado = true;
+    rateLimitUpstash = new Ratelimit({
+      redis: Redis.fromEnv(),
+      limiter: Ratelimit.slidingWindow(MAX_REQUISICOES, `${JANELA_MS / 1000} s`),
+      prefix: "vulnexusai:ratelimit",
+    });
+  }
+  return rateLimitUpstash!;
+}
 
 export function ipDaRequisicao(request: Request): string {
   const xff = request.headers.get("x-forwarded-for");
@@ -15,12 +37,12 @@ export function ipDaRequisicao(request: Request): string {
   return "desconhecido";
 }
 
-export function checaRateLimit(ip: string): { permitido: boolean; retryEmSegundos: number } {
+function checaRateLimitMemoria(ip: string): { permitido: boolean; retryEmSegundos: number } {
   const agora = Date.now();
-  const registros = (mapa.get(ip) ?? []).filter(t => agora - t < JANELA_MS);
+  const registros = (mapaMemoria.get(ip) ?? []).filter(t => agora - t < JANELA_MS);
 
   if (registros.length >= MAX_REQUISICOES) {
-    mapa.set(ip, registros);
+    mapaMemoria.set(ip, registros);
     limpaEntradas(agora);
     const maisAntigo = registros[0] ?? agora;
     const retryEmSegundos = Math.max(1, Math.ceil((JANELA_MS - (agora - maisAntigo)) / 1000));
@@ -28,16 +50,25 @@ export function checaRateLimit(ip: string): { permitido: boolean; retryEmSegundo
   }
 
   registros.push(agora);
-  mapa.set(ip, registros);
+  mapaMemoria.set(ip, registros);
   limpaEntradas(agora);
   return { permitido: true, retryEmSegundos: 0 };
 }
 
 function limpaEntradas(agora: number): void {
-  if (mapa.size <= LIMITE_ENTRADAS) return;
-  for (const [chave, registros] of mapa) {
+  if (mapaMemoria.size <= LIMITE_ENTRADAS) return;
+  for (const [chave, registros] of mapaMemoria) {
     if (registros.length === 0 || agora - registros[registros.length - 1]! > JANELA_MS) {
-      mapa.delete(chave);
+      mapaMemoria.delete(chave);
     }
   }
+}
+
+export async function checaRateLimit(ip: string): Promise<{ permitido: boolean; retryEmSegundos: number }> {
+  if (temUpstashConfigurado()) {
+    const resultado = await obtemRateLimitUpstash().limit(ip);
+    const retryEmSegundos = resultado.reset ? Math.max(1, Math.ceil((resultado.reset - Date.now()) / 1000)) : 1;
+    return { permitido: resultado.success, retryEmSegundos };
+  }
+  return checaRateLimitMemoria(ip);
 }

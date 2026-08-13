@@ -70,24 +70,101 @@ type RespostaPinada = {
   headers: Headers;
 };
 
-function isIPPrivado(host: string): boolean {
-  const ip = net.isIP(host);
-  if (ip === 4) {
-    const partes = host.split(".").map(Number);
-    if (partes[0] === 10) return true;
-    if (partes[0] === 127) return true;
-    if (partes[0] === 169 && partes[1] === 254) return true;
-    if (partes[0] === 172 && partes[1] >= 16 && partes[1] <= 31) return true;
-    if (partes[0] === 192 && partes[1] === 168) return true;
-    return false;
-  }
-  return host === "::1" || host.startsWith("fc") || host.startsWith("fd") || host.startsWith("fe8");
+function ehIpv4Privado(host: string): boolean {
+  const partes = host.split(".").map(Number);
+  if (partes[0] === 0) return true;
+  if (partes[0] === 10) return true;
+  if (partes[0] === 100 && partes[1] >= 64 && partes[1] <= 127) return true;
+  if (partes[0] === 127) return true;
+  if (partes[0] === 169 && partes[1] === 254) return true;
+  if (partes[0] === 172 && partes[1] >= 16 && partes[1] <= 31) return true;
+  if (partes[0] === 192 && partes[1] === 168) return true;
+  return false;
 }
 
-function normalizaUrl(input: string): URL {
-  let raw = input.trim();
-  if (!/^https?:\/\//i.test(raw)) raw = `https://${raw}`;
-  const u = new URL(raw);
+function ipv4EmbutidoEmIpv6(host: string): string | null {
+  const h = host.toLowerCase();
+  const pontilhado = h.match(/^(?:::ffff:(?:0:)*|64:ff9b::(?:0:)*)(\d{1,3}(?:\.\d{1,3}){3})$/);
+  if (pontilhado) return pontilhado[1]!;
+
+  const grupos = expandeIpv6(h);
+  if (!grupos) return null;
+
+  const seisPrimeiros = grupos.slice(0, 6);
+  const ehMapeado =
+    seisPrimeiros.filter(g => g === 0).length === 5 &&
+    seisPrimeiros.filter(g => g === 0xffff).length === 1;
+  const ehNat64 =
+    grupos[0] === 0x64 && grupos[1] === 0xff9b && grupos.slice(2, 6).every(g => g === 0);
+
+  if (!ehMapeado && !ehNat64) return null;
+  return `${grupos[6]! >> 8}.${grupos[6]! & 0xff}.${grupos[7]! >> 8}.${grupos[7]! & 0xff}`;
+}
+
+function expandeIpv6(host: string): number[] | null {
+  const h = host.toLowerCase();
+  const indice = h.indexOf("::");
+  let grupos: string[];
+  if (indice !== -1) {
+    const esquerda = indice === 0 ? [] : h.slice(0, indice).split(":");
+    const direita = indice >= h.length - 2 ? [] : h.slice(indice + 2).split(":");
+    const faltantes = 8 - esquerda.length - direita.length;
+    if (faltantes < 0) return null;
+    grupos = [...esquerda, ...Array(faltantes).fill("0"), ...direita];
+  } else {
+    grupos = h.split(":");
+  }
+  if (grupos.length !== 8) return null;
+  const numeros: number[] = [];
+  for (const g of grupos) {
+    const valor = parseInt(g, 16);
+    if (!Number.isFinite(valor)) return null;
+    numeros.push(valor);
+  }
+  return numeros;
+}
+
+function ehLinkLocalIpv6(host: string): boolean {
+  return host.startsWith("fe8") || host.startsWith("fe9") || host.startsWith("fea") || host.startsWith("feb");
+}
+
+export function isIPPrivado(host: string): boolean {
+  const ip = net.isIP(host);
+  if (ip === 4) return ehIpv4Privado(host);
+  if (ip === 6) {
+    const embutido = ipv4EmbutidoEmIpv6(host);
+    if (embutido) return ehIpv4Privado(embutido);
+    const h = host.toLowerCase();
+    if (h === "::1") return true;
+    if (h.startsWith("fc") || h.startsWith("fd")) return true;
+    if (ehLinkLocalIpv6(h)) return true;
+    return false;
+  }
+  return false;
+}
+
+function temEsquemaInvalido(input: string): boolean {
+  const esquema = input.match(/^([a-z][a-z0-9+.-]*):/i);
+  if (!esquema) return false;
+  const nome = esquema[1]!.toLowerCase();
+  if (nome === "http" || nome === "https") return false;
+  const resto = input.slice(nome.length + 1);
+  if (/^\d+(\/|$)/.test(resto)) return false;
+  return true;
+}
+
+export function normalizaUrl(input: string): URL {
+  const raw = input.trim();
+  if (temEsquemaInvalido(raw)) {
+    throw new VerificadorErro("protocolo-invalido", "Somente URLs http/https são aceitas.");
+  }
+  const comProtocolo = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  let u: URL;
+  try {
+    u = new URL(comProtocolo);
+  } catch {
+    throw new VerificadorErro("url-invalida", "URL inválida.");
+  }
   if (u.protocol !== "http:" && u.protocol !== "https:") {
     throw new VerificadorErro("protocolo-invalido", "Somente URLs http/https são aceitas.");
   }
@@ -99,7 +176,7 @@ function tinhaProtocolo(input: string): boolean {
   return /^https?:\/\//i.test(input.trim());
 }
 
-async function resolveHostPublico(url: URL): Promise<string> {
+export async function resolveHostPublico(url: URL): Promise<string> {
   const host = url.hostname.replace(/^\[|\]$/g, "");
   if (net.isIP(host)) {
     if (isIPPrivado(host)) throw new VerificadorErro("ip-privado", "Endereços privados não são permitidos.");
@@ -342,17 +419,17 @@ async function checaDmarc(host: string): Promise<{ registros: string[]; temDmarc
 const SELETORES_DKIM = ["default", "google", "selector1", "selector2", "k1", "s1", "s2", "mail"];
 
 async function checaDkim(host: string): Promise<{ encontrado: string[]; sucesso: boolean }> {
-  const encontrado: string[] = [];
-  for (const seletor of SELETORES_DKIM) {
-    const registros = await registrosTxt(`${seletor}._domainkey.${host}`);
-    if (registros.length > 0) {
-      encontrado.push(`${seletor}._domainkey`);
-    }
-  }
+  const resultados = await Promise.all(
+    SELETORES_DKIM.map(async seletor => {
+      const registros = await registrosTxt(`${seletor}._domainkey.${host}`);
+      return registros.length > 0 ? `${seletor}._domainkey` : null;
+    })
+  );
+  const encontrado = resultados.filter((r): r is string => r !== null);
   return { encontrado, sucesso: encontrado.length > 0 };
 }
 
-function statusDosItens(itens: ItemCheck[]): number {
+export function statusDosItens(itens: ItemCheck[]): number {
   if (itens.length === 0) return 0;
   const pontuados = itens.filter(i => i.status !== "aviso");
   if (pontuados.length === 0) return 100;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { Categoria, ItemCheck, ResultadoCheck, StatusItem } from "@/lib/verificador";
 import Topo from "./components/topo";
@@ -272,32 +272,30 @@ export default function Home() {
   const [resultado, setResultado] = useState<ResultadoCheck | null>(null);
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
-  const [historico, setHistorico] = useState<ItemHistorico[]>([]);
-  const [copiado, setCopiado] = useState(false);
-
-  useEffect(() => {
+  const [historico, setHistorico] = useState<ItemHistorico[]>(() => {
+    if (typeof window === "undefined") return [];
     try {
       const raw = localStorage.getItem(CHAVE_HISTORICO);
-      if (raw) {
-        const itens = JSON.parse(raw) as ItemHistorico[];
-        const validos = itens.filter(
-          (h): h is ItemHistorico =>
-            !!h &&
-            typeof h.score === "number" &&
-            h.score > 0 &&
-            typeof h.grade === "string" &&
-            h.grade !== "-" &&
-            typeof h.url === "string"
-        );
-        if (validos.length !== itens.length) {
-          localStorage.setItem(CHAVE_HISTORICO, JSON.stringify(validos));
-        }
-        setHistorico(validos);
+      if (!raw) return [];
+      const itens = JSON.parse(raw) as ItemHistorico[];
+      const validos = itens.filter(
+        (h): h is ItemHistorico =>
+          !!h &&
+          typeof h.score === "number" &&
+          h.score > 0 &&
+          typeof h.grade === "string" &&
+          h.grade !== "-" &&
+          typeof h.url === "string"
+      );
+      if (validos.length !== itens.length) {
+        localStorage.setItem(CHAVE_HISTORICO, JSON.stringify(validos));
       }
+      return validos;
     } catch {
-      /* ignore */
+      return [];
     }
-  }, []);
+  });
+  const [copiado, setCopiado] = useState(false);
 
   function salvaHistorico(checked: URL, score: number, grade: string) {
     const host = checked.hostname.replace(/^www\./i, "");

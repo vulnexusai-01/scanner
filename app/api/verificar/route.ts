@@ -12,7 +12,7 @@ function respostaErro(erro: string, codigo: string, status: number, extras: Reco
 
 export async function POST(request: NextRequest) {
   const ip = ipDaRequisicao(request);
-  const limite = checaRateLimit(ip);
+  const limite = await checaRateLimit(ip);
   if (!limite.permitido) {
     return Response.json(
       {
