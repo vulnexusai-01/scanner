@@ -96,7 +96,7 @@
     "titulo": "Recent history"
   },
   "footer": {
-    "nota": "Educational tool — does not replace a professional security audit."
+    "nota": "Complete automated scanning — free."
   },
   "footerLinks": {
     "sobre": "About",
@@ -138,7 +138,7 @@
         },
         {
           "h": "What it does not do",
-          "p": "This is an educational tool — it does not replace a professional security audit. The scan is automated, involves no human analysis and may not catch every problem on a website. Use the result as a starting point, not as a guarantee."
+          "p": "The scan is 100% automated with no human analysis — results in seconds, but not a professional assessment. Need a full audit with human review? Check out VulnexusAI Pro."
         },
         {
           "h": "How it works",

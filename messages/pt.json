@@ -96,7 +96,7 @@
     "titulo": "Histórico recente"
   },
   "footer": {
-    "nota": "Ferramenta educativa — não substitui uma auditoria de segurança profissional."
+    "nota": "Verificação automatizada completa — e gratuita."
   },
   "footerLinks": {
     "sobre": "Sobre",
@@ -138,7 +138,7 @@
         },
         {
           "h": "O que ela não faz",
-          "p": "Esta é uma ferramenta educativa — ela não substitui uma auditoria de segurança profissional. O scan é automatizado, não envolve análise humana e pode não detectar todos os problemas de um site. Use o resultado como ponto de partida, não como garantia."
+          "p": "A verificação é 100% automatizada e não envolve análise humana — resultados em segundos, mas sem laudo profissional. Precisa de uma auditoria completa com revisão humana? Conheça o VulnexusAI Pro."
         },
         {
           "h": "Como funciona",
