@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useSyncExternalStore, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { calculaFracaoCategoria } from "@/lib/fracao-categoria";
 import type { Categoria, ItemCheck, ResultadoCheck, StatusItem } from "@/lib/verificador";
@@ -9,6 +9,46 @@ import Rodape from "./components/rodape";
 
 const CHAVE_HISTORICO = "verificaseguranca:historico";
 const MAX_HISTORICO = 8;
+
+let historicoCache: ItemHistorico[] | null = null;
+const historicoSubscribers = new Set<() => void>();
+
+function lerHistorico(): ItemHistorico[] {
+  if (historicoCache) return historicoCache;
+  try {
+    const raw = localStorage.getItem(CHAVE_HISTORICO);
+    if (!raw) {
+      historicoCache = [];
+      return historicoCache;
+    }
+    const itens = JSON.parse(raw) as ItemHistorico[];
+    historicoCache = itens.filter(
+      (h): h is ItemHistorico =>
+        !!h &&
+        typeof h.score === "number" &&
+        h.score > 0 &&
+        typeof h.grade === "string" &&
+        h.grade !== "-" &&
+        typeof h.url === "string"
+    );
+    if (historicoCache.length !== itens.length) {
+      localStorage.setItem(CHAVE_HISTORICO, JSON.stringify(historicoCache));
+    }
+  } catch {
+    historicoCache = [];
+  }
+  return historicoCache;
+}
+
+function salvarHistoricoStore(novo: ItemHistorico[]) {
+  historicoCache = novo;
+  try {
+    localStorage.setItem(CHAVE_HISTORICO, JSON.stringify(novo));
+  } catch {
+    /* ignore */
+  }
+  historicoSubscribers.forEach((fn) => fn());
+}
 
 type ItemHistorico = {
   url: string;
@@ -20,6 +60,7 @@ type ItemHistorico = {
 type Traduz = {
   (key: string, values?: Record<string, string | number | Date>): string;
   has(key: string): boolean;
+  raw(key: string): unknown;
 };
 
 function classeScore(score: number): string {
@@ -147,8 +188,12 @@ function detalheItem(t: Traduz, item: ItemCheck, locale: string): string {
 function dicaItem(t: Traduz, item: ItemCheck, locale: string): string | undefined {
   const base = `checks.${item.id}`;
   const p = valoresItem(item, locale);
-  if (t.has(`${base}.dica`)) return t(`${base}.dica`, p);
-  if (t.has(`${base}.dica.${item.status}`)) return t(`${base}.dica.${item.status}`, p);
+  const chaveStatus = `${base}.dica.${item.status}`;
+  if (t.has(chaveStatus)) return t(chaveStatus, p);
+  const chaveGenerica = `${base}.dica`;
+  if (t.has(chaveGenerica) && typeof t.raw(chaveGenerica) === "string") {
+    return t(chaveGenerica, p);
+  }
   return undefined;
 }
 
@@ -278,30 +323,16 @@ export default function Home() {
   const [resultado, setResultado] = useState<ResultadoCheck | null>(null);
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
-  const [historico, setHistorico] = useState<ItemHistorico[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      const raw = localStorage.getItem(CHAVE_HISTORICO);
-      if (!raw) return [];
-      const itens = JSON.parse(raw) as ItemHistorico[];
-      const validos = itens.filter(
-        (h): h is ItemHistorico =>
-          !!h &&
-          typeof h.score === "number" &&
-          h.score > 0 &&
-          typeof h.grade === "string" &&
-          h.grade !== "-" &&
-          typeof h.url === "string"
-      );
-      if (validos.length !== itens.length) {
-        localStorage.setItem(CHAVE_HISTORICO, JSON.stringify(validos));
-      }
-      return validos;
-    } catch {
-      return [];
-    }
-  });
   const [copiado, setCopiado] = useState(false);
+
+  const historico = useSyncExternalStore(
+    (onStoreChange) => {
+      historicoSubscribers.add(onStoreChange);
+      return () => historicoSubscribers.delete(onStoreChange);
+    },
+    lerHistorico,
+    () => []
+  );
 
   function salvaHistorico(checked: URL, score: number, grade: string) {
     const host = checked.hostname.replace(/^www\./i, "");
@@ -311,13 +342,8 @@ export default function Home() {
       grade,
       timestamp: new Date().toISOString(),
     };
-    const novo = [item, ...historico.filter(h => h.url !== host)].slice(0, MAX_HISTORICO);
-    setHistorico(novo);
-    try {
-      localStorage.setItem(CHAVE_HISTORICO, JSON.stringify(novo));
-    } catch {
-      /* ignore */
-    }
+    const novo = [item, ...lerHistorico().filter(h => h.url !== host)].slice(0, MAX_HISTORICO);
+    salvarHistoricoStore(novo);
   }
 
   async function verificar() {

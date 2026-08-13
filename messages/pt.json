@@ -346,7 +346,7 @@
         "ok": "Registro DMARC publicado.",
         "ausente": "Nenhum registro DMARC (_dmarc) encontrado."
       },
-      "dica": "Publique `_dmarc.<dominio> TXT v=DMARC1; p=none; rua=mailto:seu@email` e depois evolua a política."
+      "dica": "Publique um registro TXT em `_dmarc.dominio` (ex.: `v=DMARC1; p=none; rua=mailto:seu@email`) e depois evolua a política."
     },
     "dkim": {
       "titulo": "DKIM",
@@ -355,7 +355,7 @@
         "ok": "Seletor(es) encontrado(s): {seletores}.",
         "ausente": "Nenhum seletor DKIM comum encontrado."
       },
-      "dica": "Configure DKIM no seu provedor de email e publique a chave pública em `<seletor>._domainkey.<dominio>`."
+      "dica": "Configure DKIM no seu provedor de email e publique a chave pública em `seletor._domainkey.dominio`."
     },
     "cookies": {
       "titulo": "Cookies de sessão",

@@ -346,7 +346,7 @@
         "ok": "DMARC record published.",
         "ausente": "No DMARC record (_dmarc) found."
       },
-      "dica": "Publish `_dmarc.<domain> TXT v=DMARC1; p=none; rua=mailto:your@email` and evolve the policy later."
+      "dica": "Publish a TXT record at `_dmarc.domain` (e.g. `v=DMARC1; p=none; rua=mailto:your@email`) and strengthen the policy later."
     },
     "dkim": {
       "titulo": "DKIM",
@@ -355,7 +355,7 @@
         "ok": "Selector(s) found: {seletores}.",
         "ausente": "No common DKIM selector found."
       },
-      "dica": "Set up DKIM in your email provider and publish the public key at `<selector>._domainkey.<domain>`."
+      "dica": "Set up DKIM with your email provider and publish the public key at `selector._domainkey.domain`."
     },
     "cookies": {
       "titulo": "Session cookies",
