@@ -1327,6 +1327,91 @@ body::before {
   margin-top: 24px;
 }
 
+.faq {
+  max-width: 720px;
+  margin: 56px auto 0;
+  text-align: left;
+}
+
+.faq h2 {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-lo);
+  margin-bottom: 14px;
+}
+
+.faq .faq-lista {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 4px 16px;
+  background: var(--bg-card);
+}
+
+.faq .item .item-titulo {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.blog-relacionados {
+  margin-top: 28px;
+}
+
+.blog-relacionados h2 {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-lo);
+  margin-bottom: 14px;
+}
+
+.comparar {
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  padding: 16px 18px;
+  background: var(--bg-card);
+}
+
+.comparar h2 {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.comparar-desc {
+  color: var(--text-mid);
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.comparar-links {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.comparar-links a {
+  display: inline-block;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--azul);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.15s;
+}
+
+.comparar-links a:hover {
+  border-color: var(--azul);
+}
+
 @media (max-width: 760px) {
   .pagina h1 {
     font-size: 24px;

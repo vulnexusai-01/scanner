@@ -9,14 +9,14 @@ describe("checaRateLimit (fallback em memória)", () => {
   });
 
   it("permite as primeiras requisições", async () => {
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < 24; i++) {
       const resultado = await checaRateLimit("192.0.2.10", "verificar");
       expect(resultado.permitido).toBe(true);
     }
   });
 
   it("bloqueia a requisição que excede o limite", async () => {
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 25; i++) {
       await checaRateLimit("192.0.2.20", "verificar");
     }
     const bloqueado = await checaRateLimit("192.0.2.20", "verificar");
@@ -25,7 +25,7 @@ describe("checaRateLimit (fallback em memória)", () => {
   });
 
   it("não bloqueia IPs diferentes", async () => {
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 25; i++) {
       await checaRateLimit("192.0.2.30", "verificar");
     }
     await expect(checaRateLimit("192.0.2.31", "verificar")).resolves.toEqual({ permitido: true, retryEmSegundos: 0 });
@@ -33,7 +33,7 @@ describe("checaRateLimit (fallback em memória)", () => {
 
   it("libera o IP após expirar a janela", async () => {
     vi.useFakeTimers();
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 25; i++) {
       await checaRateLimit("192.0.2.40", "verificar");
     }
     const bloqueado = await checaRateLimit("192.0.2.40", "verificar");
@@ -43,8 +43,8 @@ describe("checaRateLimit (fallback em memória)", () => {
     await expect(checaRateLimit("192.0.2.40", "verificar")).resolves.toEqual({ permitido: true, retryEmSegundos: 0 });
   });
 
-  it("limita o contexto badge a 25 requisições por janela", async () => {
-    for (let i = 0; i < 25; i++) {
+  it("limita o contexto badge a 40 requisições por janela", async () => {
+    for (let i = 0; i < 40; i++) {
       const resultado = await checaRateLimit("192.0.2.50", "badge");
       expect(resultado.permitido).toBe(true);
     }
@@ -54,7 +54,7 @@ describe("checaRateLimit (fallback em memória)", () => {
   });
 
   it("mantém contadores independentes entre contextos", async () => {
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 25; i++) {
       await checaRateLimit("192.0.2.60", "verificar");
     }
     const bloqueadoNoVerificar = await checaRateLimit("192.0.2.60", "verificar");

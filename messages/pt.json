@@ -2,18 +2,6 @@
   "meta": {
     "title": "VulnexusAI — Verificação de segurança de sites",
     "description": "Verifique headers de segurança HTTP, HTTPS, certificado SSL, DNS de email, cookies e CORS com score automático e dicas de correção. Ferramenta gratuita da VulnexusAI.",
-    "keywords": [
-      "verificação de segurança",
-      "scanner de segurança",
-      "headers de segurança",
-      "HTTPS",
-      "certificado SSL",
-      "SPF",
-      "DMARC",
-      "DKIM",
-      "cookies",
-      "vulnerabilidade de site"
-    ],
     "ogTitle": "VulnexusAI — Verificação de segurança de sites",
     "ogDescription": "Headers, HTTPS, certificado SSL, DNS de email, cookies e CORS — com score automático e dicas de correção em português.",
     "twitterTitle": "VulnexusAI — Verificação de segurança de sites",
@@ -44,6 +32,27 @@
       "relatorio": "Relatório comparável"
     }
   },
+  "faq": {
+    "titulo": "Perguntas frequentes",
+    "perguntas": [
+      {
+        "q": "A verificação é gratuita?",
+        "a": "Sim. A VulnexusAI é gratuita, não exige cadastro e não armazena os dados dos sites verificados."
+      },
+      {
+        "q": "Como o score e a nota são calculados?",
+        "a": "O resultado combina todas as categorias (HTTPS, headers, DNS de email, cookies, CORS, arquivos sensíveis, conteúdo e infraestrutura). O score vai de 0 a 100 e a nota de A a F, com peso maior para os itens mais críticos."
+      },
+      {
+        "q": "Meu histórico fica salvo no servidor?",
+        "a": "Não. O histórico recente fica apenas no seu navegador, em localStorage, e nunca é enviado ao servidor."
+      },
+      {
+        "q": "O resultado substitui um laudo profissional?",
+        "a": "Não. A verificação é 100% automatizada e serve como ponto de partida. Para auditorias profundas, consulte um profissional ou scanners complementares."
+      }
+    ]
+  },
   "erros": {
     "protocolo-invalido": "Somente URLs http/https são aceitas.",
     "url-invalida": "URL inválida.",
@@ -53,7 +62,7 @@
     "conexao-falhou": "Não foi possível conectar ao site (tempo esgotado ou conexão recusada).",
     "loop-redirect": "Redirecionamento em loop ou limite excedido.",
     "falha-verificar": "Falha ao verificar o site.",
-    "rate-limit": "Muitas requisições. Tente novamente em {segundos} segundo(s).",
+    "rate-limit": "Você atingiu o limite temporário de verificações. Aguarde {segundos} segundo(s) e tente novamente.",
     "corpo-grande": "Corpo da requisição muito grande (máx. 2048 caracteres).",
     "corpo-invalido": "Falha ao ler o corpo da requisição.",
     "json-invalido": "JSON inválido.",
@@ -92,6 +101,12 @@
     "categoria": "{titulo}: {ok}/{total}",
     "chamada": "Verifique seu site com a VulnexusAI em vulnexusai.com"
   },
+  "comparar": {
+    "titulo": "Compare com outros scanners",
+    "descricao": "Quer confirmar o resultado? Rode o mesmo domínio em scanners independentes e compare. O resultado da VulnexusAI é automatizado e não substitui um laudo profissional.",
+    "securityHeaders": "SecurityHeaders.com — headers de segurança",
+    "sslLabs": "SSL Labs — TLS e certificado"
+  },
   "historico": {
     "titulo": "Histórico recente"
   },
@@ -114,6 +129,7 @@
     "dataPublicacao": "Publicado em {data}",
     "lerArtigo": "Ler artigo",
     "lerEmOutroIdioma": "Ler em {idioma}",
+    "leiaTambem": "Leia também",
     "verificarCta": {
       "titulo": "Seu site passa nessas verificações?",
       "texto": "Teste qualquer URL pública no scanner gratuito da VulnexusAI e veja um score de 0 a 100, com nota de A a F e dicas de correção.",

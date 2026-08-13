@@ -19,6 +19,14 @@ export const PARES_DE_ARTIGOS: ReadonlyArray<{ pt: string; en: string }> = [
   { pt: "arquivos-sensiveis-expostos", en: "sensitive-files-exposed" },
 ];
 
+const RELACIONADOS: Record<string, string[]> = {
+  "o-que-e-hsts": ["content-security-policy-explicada", "cookies-seguros-secure-httponly-samesite"],
+  "content-security-policy-explicada": ["o-que-e-hsts", "cookies-seguros-secure-httponly-samesite"],
+  "spf-dkim-dmarc-guia-completo": ["o-que-e-hsts", "cookies-seguros-secure-httponly-samesite"],
+  "cookies-seguros-secure-httponly-samesite": ["content-security-policy-explicada", "o-que-e-hsts"],
+  "arquivos-sensiveis-expostos": ["o-que-e-hsts", "content-security-policy-explicada"],
+};
+
 const BASE = path.join(process.cwd(), "content", "blog");
 
 export function caminhoArtigo(locale: LocaleArtigo, slug: string): string {
@@ -45,6 +53,22 @@ export function paresDeSlug(locale: LocaleArtigo, slug: string): { slugPt: strin
   const par = PARES_DE_ARTIGOS.find(p => p[locale] === slug);
   if (!par) return undefined;
   return { slugPt: par.pt, slugEn: par.en };
+}
+
+export function artigosRelacionados(
+  locale: LocaleArtigo,
+  slug: string
+): Array<{ slug: string; frontmatter: FrontmatterArtigo }> {
+  const par = PARES_DE_ARTIGOS.find(p => p[locale] === slug);
+  if (!par) return [];
+  const slugsPt = (RELACIONADOS[par.pt] ?? []).filter(s => s !== par.pt).slice(0, 2);
+  return slugsPt
+    .map(ptSlug => paresDeSlug(locale, ptSlug))
+    .filter((p): p is { slugPt: string; slugEn: string } => Boolean(p))
+    .map(p => {
+      const slugAlvo = locale === "pt" ? p.slugPt : p.slugEn;
+      return { slug: slugAlvo, frontmatter: artigoCompleto(locale, slugAlvo).data };
+    });
 }
 
 export function rotasBlog(): Array<{ locale: LocaleArtigo; slug: string }> {

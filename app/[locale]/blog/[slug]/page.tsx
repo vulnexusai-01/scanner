@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { compileMDX } from "next-mdx-remote/rsc";
 import { Link } from "@/i18n/navigation";
 import {
+  artigosRelacionados,
   artigoCompleto,
   existeArtigo,
   paresDeSlug,
@@ -76,6 +77,7 @@ export default async function ArtigoPage({ params }: Props) {
   const pares = paresDeSlug(l, slug);
   const urlLocal = locale === "pt" ? `/blog/${slug}` : `/en/blog/${slug}`;
   const idiomaAlternativo = locale === "pt" ? "en" : "pt";
+  const relacionados = artigosRelacionados(l, slug);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -112,6 +114,20 @@ export default async function ArtigoPage({ params }: Props) {
               {t("lerEmOutroIdioma", { idioma: tRoot(`langSwitcher.${idiomaAlternativo}`) })}
             </Link>
           </p>
+        )}
+        {relacionados.length > 0 && (
+          <section className="blog-relacionados">
+            <h2>{t("leiaTambem")}</h2>
+            <div className="blog-lista">
+              {relacionados.map(artigo => (
+                <Link key={artigo.slug} href={`/blog/${artigo.slug}`} className="blog-card">
+                  <h2>{artigo.frontmatter.titulo}</h2>
+                  <p>{artigo.frontmatter.descricao}</p>
+                  <span className="blog-ler">{t("lerArtigo")}</span>
+                </Link>
+              ))}
+            </div>
+          </section>
         )}
         <VerificarCta locale={l} />
         <AdSlot slot="artigo-rodape" />

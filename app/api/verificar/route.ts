@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   if (!limite.permitido) {
     return Response.json(
       {
-        erro: `Muitas requisições. Tente novamente em ${limite.retryEmSegundos} segundo(s).`,
+        erro: `Você atingiu o limite temporário de verificações. Aguarde ${limite.retryEmSegundos} segundo(s) e tente novamente.`,
         codigo: "rate-limit",
         retryEmSegundos: limite.retryEmSegundos,
       },

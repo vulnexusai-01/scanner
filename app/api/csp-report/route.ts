@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   const ip = ipDaRequisicao(request);
   const limite = await checaRateLimit(ip, "csp-report");
   if (!limite.permitido) {
-    return new Response("Muitas requisições. Tente novamente em instantes.", {
+    return new Response(`Você atingiu o limite temporário. Aguarde ${limite.retryEmSegundos}s e tente novamente.`, {
       status: 429,
       headers: { "Retry-After": String(limite.retryEmSegundos) },
     });

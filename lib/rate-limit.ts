@@ -7,10 +7,10 @@ const JANELA_MS = 5 * 60 * 1000;
 const LIMITE_ENTRADAS = 5000;
 
 const LIMITES_POR_CONTEXTO: Record<ContextoRateLimit, number> = {
-  badge: 25,
-  verificar: 10,
-  "csp-report": 10,
-  monitor: 5,
+  badge: 40,
+  verificar: 25,
+  "csp-report": 50,
+  monitor: 10,
 };
 
 const mapaMemoria = new Map<string, number[]>();

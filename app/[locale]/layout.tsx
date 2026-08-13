@@ -30,7 +30,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     metadataBase: new URL(base),
     title: t("title"),
     description: t("description"),
-    keywords: (t.raw("keywords") as string[]) ?? [],
     alternates: {
       canonical: locale === "pt" ? "/" : "/en",
       languages: {

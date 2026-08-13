@@ -16,7 +16,7 @@ function respostaErro(erro: string, codigo: string, status: number) {
 function respostaRateLimit(retryEmSegundos: number): Response {
   return Response.json(
     {
-      erro: `Muitas requisições. Tente novamente em ${retryEmSegundos} segundo(s).`,
+      erro: `Você atingiu o limite temporário de verificações. Aguarde ${retryEmSegundos} segundo(s) e tente novamente.`,
       codigo: "rate-limit",
       retryEmSegundos,
     },

@@ -2,18 +2,6 @@
   "meta": {
     "title": "VulnexusAI — Website security check",
     "description": "Check security headers, HTTPS, SSL certificate, email DNS, cookies and CORS with an automatic score and fix tips. Free tool from VulnexusAI.",
-    "keywords": [
-      "security check",
-      "security scanner",
-      "security headers",
-      "HTTPS",
-      "SSL certificate",
-      "SPF",
-      "DMARC",
-      "DKIM",
-      "cookies",
-      "website vulnerability"
-    ],
     "ogTitle": "VulnexusAI — Website security check",
     "ogDescription": "Headers, HTTPS, SSL certificate, email DNS, cookies and CORS — with automatic score and fix tips.",
     "twitterTitle": "VulnexusAI — Website security check",
@@ -44,6 +32,27 @@
       "relatorio": "Comparable report"
     }
   },
+  "faq": {
+    "titulo": "Frequently asked questions",
+    "perguntas": [
+      {
+        "q": "Is the check free?",
+        "a": "Yes. VulnexusAI is free, requires no signup and does not store data from scanned websites."
+      },
+      {
+        "q": "How are the score and grade calculated?",
+        "a": "The result combines every category (HTTPS, headers, email DNS, cookies, CORS, sensitive files, content and infrastructure). The score goes from 0 to 100 and the grade from A to F, with a higher weight for the most critical items."
+      },
+      {
+        "q": "Is my history stored on the server?",
+        "a": "No. Recent history is stored only in your browser, in localStorage, and is never sent to the server."
+      },
+      {
+        "q": "Does the result replace a professional assessment?",
+        "a": "No. The check is fully automated and should be a starting point. For deep audits, consult a professional or complementary scanners."
+      }
+    ]
+  },
   "erros": {
     "protocolo-invalido": "Only http/https URLs are accepted.",
     "url-invalida": "Invalid URL.",
@@ -53,7 +62,7 @@
     "conexao-falhou": "Could not connect to the website (timeout or connection refused).",
     "loop-redirect": "Redirect loop or limit exceeded.",
     "falha-verificar": "Failed to check the website.",
-    "rate-limit": "Too many requests. Try again in {segundos} second(s).",
+    "rate-limit": "You reached the temporary check limit. Wait {segundos} second(s) and try again.",
     "corpo-grande": "Request body too large (max. 2048 characters).",
     "corpo-invalido": "Failed to read the request body.",
     "json-invalido": "Invalid JSON.",
@@ -92,6 +101,12 @@
     "categoria": "{titulo}: {ok}/{total}",
     "chamada": "Check your website with VulnexusAI at vulnexusai.com"
   },
+  "comparar": {
+    "titulo": "Compare with other scanners",
+    "descricao": "Want to confirm the result? Run the same domain through independent scanners and compare. The VulnexusAI result is automated and does not replace a professional assessment.",
+    "securityHeaders": "SecurityHeaders.com — security headers",
+    "sslLabs": "SSL Labs — TLS and certificate"
+  },
   "historico": {
     "titulo": "Recent history"
   },
@@ -114,6 +129,7 @@
     "dataPublicacao": "Published on {data}",
     "lerArtigo": "Read article",
     "lerEmOutroIdioma": "Read in {idioma}",
+    "leiaTambem": "Keep reading",
     "verificarCta": {
       "titulo": "Does your site pass these checks?",
       "texto": "Test any public URL with the free VulnexusAI scanner and get a score from 0 to 100, with a grade from A to F and fix tips.",
