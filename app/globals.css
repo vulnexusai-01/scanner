@@ -1361,11 +1361,26 @@ body::before {
 
 @media (max-width: 640px) {
   .topo {
-    padding: 18px 0;
+    padding: 16px 0;
+    flex-wrap: wrap;
+    row-gap: 12px;
   }
 
   .topo nav {
-    display: none;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .nav-link {
+    font-size: 13px;
+  }
+
+  .logo {
+    font-size: 15px;
+  }
+
+  .lang-toggle {
+    margin-left: auto;
   }
 
   .hero {
