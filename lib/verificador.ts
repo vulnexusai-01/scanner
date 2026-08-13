@@ -173,10 +173,6 @@ export function normalizaUrl(input: string): URL {
   return u;
 }
 
-function tinhaProtocolo(input: string): boolean {
-  return /^https?:\/\//i.test(input.trim());
-}
-
 export async function resolveHostPublico(url: URL): Promise<string> {
   const host = url.hostname.replace(/^\[|\]$/g, "");
   if (net.isIP(host)) {
@@ -574,11 +570,9 @@ export async function verificarSite(input: string): Promise<ResultadoCheck> {
     para: r.headers.get("location") || "",
   }));
 
-  if (!tinhaProtocolo(input)) {
-    const httpRedirect = await testaRedirectHttp(url);
-    if (httpRedirect && !redirects.some(r => r.de.startsWith("http:"))) {
-      redirects.unshift(httpRedirect);
-    }
+  const httpRedirect = await testaRedirectHttp(url);
+  if (httpRedirect && !redirects.some(r => r.de.startsWith("http:"))) {
+    redirects.unshift(httpRedirect);
   }
 
   const https = final.url.startsWith("https:");
