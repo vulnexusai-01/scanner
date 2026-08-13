@@ -50,7 +50,7 @@ function badgeSvg(score: number | null, grade: string | null): string {
 
 export async function GET(request: NextRequest) {
   const ip = ipDaRequisicao(request);
-  const limite = await checaRateLimit(ip);
+  const limite = await checaRateLimit(ip, "badge");
   if (!limite.permitido) {
     return new Response("Muitas requisições. Tente novamente em instantes.", {
       status: 429,

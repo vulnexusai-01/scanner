@@ -8,7 +8,7 @@ const TIPOS_ACEITOS = ["application/reports+json", "application/csp-report"];
 
 export async function POST(request: NextRequest) {
   const ip = ipDaRequisicao(request);
-  const limite = await checaRateLimit(ip);
+  const limite = await checaRateLimit(ip, "csp-report");
   if (!limite.permitido) {
     return new Response("Muitas requisições. Tente novamente em instantes.", {
       status: 429,

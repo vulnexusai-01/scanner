@@ -10,37 +10,54 @@ describe("checaRateLimit (fallback em memória)", () => {
 
   it("permite as primeiras requisições", async () => {
     for (let i = 0; i < 9; i++) {
-      const resultado = await checaRateLimit("192.0.2.10");
+      const resultado = await checaRateLimit("192.0.2.10", "verificar");
       expect(resultado.permitido).toBe(true);
     }
   });
 
   it("bloqueia a requisição que excede o limite", async () => {
     for (let i = 0; i < 10; i++) {
-      await checaRateLimit("192.0.2.20");
+      await checaRateLimit("192.0.2.20", "verificar");
     }
-    const bloqueado = await checaRateLimit("192.0.2.20");
+    const bloqueado = await checaRateLimit("192.0.2.20", "verificar");
     expect(bloqueado.permitido).toBe(false);
     expect(bloqueado.retryEmSegundos).toBeGreaterThan(0);
   });
 
   it("não bloqueia IPs diferentes", async () => {
     for (let i = 0; i < 10; i++) {
-      await checaRateLimit("192.0.2.30");
+      await checaRateLimit("192.0.2.30", "verificar");
     }
-    await expect(checaRateLimit("192.0.2.31")).resolves.toEqual({ permitido: true, retryEmSegundos: 0 });
+    await expect(checaRateLimit("192.0.2.31", "verificar")).resolves.toEqual({ permitido: true, retryEmSegundos: 0 });
   });
 
   it("libera o IP após expirar a janela", async () => {
     vi.useFakeTimers();
     for (let i = 0; i < 10; i++) {
-      await checaRateLimit("192.0.2.40");
+      await checaRateLimit("192.0.2.40", "verificar");
     }
-    const bloqueado = await checaRateLimit("192.0.2.40");
+    const bloqueado = await checaRateLimit("192.0.2.40", "verificar");
     expect(bloqueado.permitido).toBe(false);
 
     vi.advanceTimersByTime(JANELA_MS + 1);
-    await expect(checaRateLimit("192.0.2.40")).resolves.toEqual({ permitido: true, retryEmSegundos: 0 });
+    await expect(checaRateLimit("192.0.2.40", "verificar")).resolves.toEqual({ permitido: true, retryEmSegundos: 0 });
+  });
+
+  it("aplica limite maior para o badge", async () => {
+    for (let i = 0; i < 15; i++) {
+      const resultado = await checaRateLimit("192.0.2.50", "badge");
+      expect(resultado.permitido).toBe(true);
+    }
+  });
+
+  it("mantém contadores independentes entre contextos", async () => {
+    for (let i = 0; i < 10; i++) {
+      await checaRateLimit("192.0.2.60", "verificar");
+    }
+    const bloqueadoNoVerificar = await checaRateLimit("192.0.2.60", "verificar");
+    expect(bloqueadoNoVerificar.permitido).toBe(false);
+
+    await expect(checaRateLimit("192.0.2.60", "badge")).resolves.toEqual({ permitido: true, retryEmSegundos: 0 });
   });
 });
 
