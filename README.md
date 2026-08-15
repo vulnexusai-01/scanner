@@ -1,4 +1,10 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VulnexusAI — Scanner de segurança de sites
+
+**Site:** [https://vulnexusai.com](https://vulnexusai.com) · **Blog:** [https://vulnexusai.com/blog](https://vulnexusai.com/blog)
+
+Scanner de segurança de websites em um clique: headers HTTP, HTTPS, certificado SSL, DNS de email, cookies, CORS, arquivos sensíveis e conteúdo — com score de 0 a 100, grade A–F e dicas de correção. Gratuito, sem cadastro, em português e inglês.
+
+Feito com [Next.js](https://nextjs.org), `next-intl` e [Upstash](https://upstash.com).
 
 ## Monitoramento contínuo (QStash + webhooks)
 
