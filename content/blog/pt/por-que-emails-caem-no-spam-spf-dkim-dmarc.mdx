@@ -1,0 +1,89 @@
+---
+titulo: "Por que seus emails caem no SPAM (e como configurar SPF, DKIM e DMARC)"
+descricao: "Email caindo no spam mesmo sendo legítimo? O problema quase sempre é SPF, DKIM ou DMARC mal configurado. Veja os registros DNS prontos e os erros que derrubam a entregabilidade."
+data: "2026-09-01"
+slug: "por-que-emails-caem-no-spam-spf-dkim-dmarc"
+---
+
+Você envia um email de `contato@suaempresa.com` e ele cai direto na caixa de spam do cliente. O conteúdo está correto, o assunto não tem palavras suspeitas — mas o Gmail, o Outlook ou o servidor do destinatário decidiram que aquele email não é confiável. Na maioria dos casos, o motivo é técnico: o domínio não tem SPF, DKIM ou DMARC configurados, então qualquer servidor pode fingir enviar em nome de `suaempresa.com` e os provedores de email sabem disso.
+
+## O que o servidor de destino verifica
+
+Quando um email chega, o servidor do destinatário faz três perguntas antes de entregar na caixa de entrada:
+
+1. **SPF** — o servidor que enviou esse email está autorizado a enviar por esse domínio?
+2. **DKIM** — a mensagem foi assinada com uma chave privada que corresponde à chave pública publicada no DNS do domínio?
+3. **DMARC** — o domínio tem uma política definindo o que fazer quando SPF ou DKIM falham?
+
+Sem essas respostas positivas, o email é suspeito por definição.
+
+## SPF: quem pode enviar em nome do seu domínio
+
+O SPF é um registro TXT no DNS que lista os servidores autorizados a enviar email pelo seu domínio.
+
+```
+# DNS TXT para _domainname.suaempresa.com (sem subdomain) ou suaempresa.com
+v=spf1 include:_spf.google.com include:sendgrid.net ~all
+```
+
+- `include:_spf.google.com` — autoriza o Google Workspace
+- `include:sendgrid.net` — autoriza o SendGrid (troque pelo seu provedor de envio)
+- `~all` — emails de outros servidores são marcados como suspeitos (softfail); use `-all` para rejeitar com falha definitiva
+
+**Erro crítico:** múltiplos registros SPF. O domínio deve ter exatamente **um** registro TXT SPF. Se você adicionar um segundo, o comportamento é indefinido e provedores ignoram ambos. Combine tudo em uma linha usando `include:`.
+
+**Limite de 10 lookups DNS:** o SPF tem um limite de 10 consultas DNS durante a validação. Cada `include:` gasta um lookup. Se ultrapassar, o SPF falha automaticamente — `permerror`.
+
+## DKIM: assinatura criptográfica da mensagem
+
+O DKIM adiciona uma assinatura na mensagem usando uma chave privada que fica no servidor de envio. O DNS publica a chave pública. O servidor do destinatário verifica se a assinatura bate.
+
+O registro DNS fica em `selector._domainkey.suaempresa.com`:
+
+```
+# Exemplo com Google Workspace (selector "google")
+google._domainkey.suaempresa.com  TXT  "v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4..."
+```
+
+A chave pública (`p=...`) é gerada pelo seu provedor de email. Você pega ela no painel de configuração (Google Workspace, SendGrid, Amazon SES, etc.) e publica no DNS.
+
+**Erro comum:** alterar o corpo ou os headers do email depois da assinatura. Sistemas de encaminhamento (forward) quebram DKIM porque modificam a mensagem. Isso é esperado — DMARC pode sobreviver a isso se o SPF alinhar.
+
+## DMARC: a política que une tudo
+
+O DMARC instrui o servidor do destinatário o que fazer quando SPF **e** DKIM falham, e pede relatórios de uso do domínio.
+
+```
+# DNS TXT para _dmarc.suaempresa.com
+v=DMARC1; p=quarantine; rua=mailto:dmarc-reports@suaempresa.com; pct=100
+```
+
+- `p=none` — só monitora, não toma ação (bom para começar)
+- `p=quarantine` — manda para spam quando falha
+- `p=reject` — rejeita completamente quando falha (mais seguro)
+- `rua=` — endereço que recebe relatórios agregados diários
+
+**Progressão recomendada:** comece com `p=none` por 2-4 semanas, analise os relatórios para garantir que emails legítimos estão passando, depois mude para `quarantine` e finalmente `reject`.
+
+## Sequência de verificação rápida
+
+1. Verifique se o registro SPF existe: `nslookup -type=TXT suaempresa.com`
+2. Verifique o DKIM: `nslookup -type=TXT google._domainkey.suaempresa.com`
+3. Verifique o DMARC: `nslookup -type=TXT _dmarc.suaempresa.com`
+4. Envie um email de teste para [mail-tester.com](https://www.mail-tester.com) — pontua de 1 a 10 e mostra exatamente o que está errado
+
+## Erros comuns que derrubam a entregabilidade
+
+**Dois registros SPF no DNS** — proveedores ignoram ambos. Sempre um único registro TXT SPF por domínio.
+
+**SPF sem DMARC** — sem DMARC, o SPF não alinha e o Gmail ignora o resultado. Os três registros trabalham juntos.
+
+**DKIM com chave de 1024 bits** — chaves de 1024 bits já foram quebradas. Use 2048 bits ao gerar o par de chaves no seu provedor.
+
+**Subdomínios sem política DMARC** — um `p=reject` no domínio raiz não cobre subdomínios automaticamente. Adicione `sp=reject` na policy DMARC ou publique um registro `_dmarc.subdominio.suaempresa.com` separado.
+
+**IP de envio na blocklist** — SPF, DKIM e DMARC corretos não ajudam se o IP do seu servidor de envio está em listas de bloqueio como Spamhaus. Verifique em [mxtoolbox.com/blacklists](https://mxtoolbox.com/blacklists.aspx).
+
+---
+
+Configurou SPF, DKIM e DMARC mas quer confirmar que sua infraestrutura não tem outros problemas de segurança? O [scanner da VulnexusAI](https://vulnexusai.com) analisa headers HTTP, TLS, CORS e vazamento de arquivos sensíveis em segundos.
