@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",
-    "indexnow": "node scripts/indexnow-ping.mjs"
+    "indexnow": "node scripts/indexnow-ping.mjs",
+    "smoke:monitor": "node scripts/smoke-test-monitor.mjs"
   },
   "dependencies": {
     "@upstash/qstash": "^2.11.3",

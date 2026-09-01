@@ -71,10 +71,11 @@ function ehChaveMonitor(chave: string): boolean {
   return chave.startsWith(PREFIXO_MONITOR) && !chave.startsWith(PREFIXO_RESULTADO);
 }
 
-function parseiaMonitor(texto: string): Monitor | null {
+function parseiaMonitor(dado: unknown): Monitor | null {
   try {
-    const valor = JSON.parse(texto) as Monitor;
+    const valor = (typeof dado === "string" ? JSON.parse(dado) : dado) as Monitor;
     if (
+      valor &&
       typeof valor.hostname === "string" &&
       typeof valor.webhookUrl === "string" &&
       typeof valor.tokenHash === "string"
@@ -120,14 +121,14 @@ export async function leMonitor(hostname: string): Promise<Monitor | null> {
   const cliente = obtemRedis();
   if (cliente) {
     try {
-      const texto = await cliente.get<string>(chaveMonitor(hostname));
-      return texto ? parseiaMonitor(texto) : null;
+      const dado = await cliente.get<unknown>(chaveMonitor(hostname));
+      return dado ? parseiaMonitor(dado) : null;
     } catch {
       return null;
     }
   }
-  const texto = memoria.get(chaveMonitor(hostname));
-  return texto ? parseiaMonitor(texto) : null;
+  const dado = memoria.get(chaveMonitor(hostname));
+  return dado ? parseiaMonitor(dado) : null;
 }
 
 export async function listaMonitores(): Promise<Monitor[]> {
@@ -141,9 +142,9 @@ export async function listaMonitores(): Promise<Monitor[]> {
         cursor = pagina[0];
         for (const chave of pagina[1]) {
           if (!ehChaveMonitor(chave)) continue;
-          const texto = await cliente.get<string>(chave);
-          if (texto) {
-            const monitor = parseiaMonitor(texto);
+          const dado = await cliente.get<unknown>(chave);
+          if (dado) {
+            const monitor = parseiaMonitor(dado);
             if (monitor) monitores.push(monitor);
           }
         }
@@ -181,8 +182,9 @@ export async function leUltimoResultado(hostname: string): Promise<ResultadoChec
   const cliente = obtemRedis();
   if (cliente) {
     try {
-      const texto = await cliente.get<string>(chaveResultado(hostname));
-      return texto ? (JSON.parse(texto) as ResultadoCheck) : null;
+      const dado = await cliente.get<unknown>(chaveResultado(hostname));
+      if (!dado) return null;
+      return typeof dado === "string" ? (JSON.parse(dado) as ResultadoCheck) : (dado as ResultadoCheck);
     } catch {
       return null;
     }
