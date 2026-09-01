@@ -1,3 +1,4 @@
+import { randomBytes, createHash, timingSafeEqual } from "node:crypto";
 import { Redis } from "@upstash/redis";
 import type { ResultadoCheck } from "./verificador";
 
@@ -10,7 +11,26 @@ export type Monitor = {
   webhookTipo: WebhookTipo;
   cron: string;
   criadoEm: string;
+  tokenHash: string;
 };
+
+export function geraToken(): string {
+  return randomBytes(32).toString("hex");
+}
+
+export function hashToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+export function validaToken(tokenFornecido: string, tokenHashEsperado: string): boolean {
+  if (typeof tokenFornecido !== "string" || typeof tokenHashEsperado !== "string") return false;
+  if (!tokenFornecido || !tokenHashEsperado) return false;
+  const hashFornecido = hashToken(tokenFornecido);
+  const bufA = Buffer.from(hashFornecido, "hex");
+  const bufB = Buffer.from(tokenHashEsperado, "hex");
+  if (bufA.length !== bufB.length) return false;
+  return timingSafeEqual(bufA, bufB);
+}
 
 const TTL_RESULTADO_MS = 90 * 24 * 60 * 60 * 1000;
 
@@ -54,7 +74,13 @@ function ehChaveMonitor(chave: string): boolean {
 function parseiaMonitor(texto: string): Monitor | null {
   try {
     const valor = JSON.parse(texto) as Monitor;
-    if (typeof valor.hostname === "string" && typeof valor.webhookUrl === "string") return valor;
+    if (
+      typeof valor.hostname === "string" &&
+      typeof valor.webhookUrl === "string" &&
+      typeof valor.tokenHash === "string"
+    ) {
+      return valor;
+    }
     return null;
   } catch {
     return null;
