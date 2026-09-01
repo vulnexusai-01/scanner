@@ -15,7 +15,8 @@
   },
   "langSwitcher": {
     "pt": "Portuguese",
-    "en": "English"
+    "en": "English",
+    "es": "Spanish"
   },
   "hero": {
     "eyebrow": "VULNEXUSAI · SECURITY TOOL",
@@ -386,7 +387,8 @@
       "descricao": "SPF — authorizes which servers can send email on behalf of the domain.",
       "detalhe": {
         "ok": "SPF record found ({quantidade} TXT).",
-        "ausente": "No SPF record found."
+        "ausente": "No SPF record found.",
+        "sem-email": "Domain without MX — the site doesn't use its own email; SPF doesn't apply."
       },
       "dica": "Publish a TXT record such as `v=spf1 include:_spf.provider ~all` in the domain DNS."
     },
@@ -395,7 +397,8 @@
       "descricao": "DMARC — policy for handling emails forged with your domain.",
       "detalhe": {
         "ok": "DMARC record published.",
-        "ausente": "No DMARC record (_dmarc) found."
+        "ausente": "No DMARC record (_dmarc) found.",
+        "sem-email": "Domain without MX — the site doesn't use its own email; DMARC doesn't apply."
       },
       "dica": "Publish a TXT record at `_dmarc.domain` (e.g. `v=DMARC1; p=none; rua=mailto:your@email`) and strengthen the policy later."
     },
@@ -404,9 +407,20 @@
       "descricao": "DKIM — digital signature that validates the authenticity of emails.",
       "detalhe": {
         "ok": "Selector(s) found: {seletores}.",
-        "ausente": "No common DKIM selector found."
+        "ausente": "No common DKIM selector found.",
+        "sem-email": "Domain without MX — the site doesn't use its own email; DKIM doesn't apply."
       },
       "dica": "Set up DKIM with your email provider and publish the public key at `selector._domainkey.domain`."
+    },
+    "mta-sts": {
+      "titulo": "MTA-STS",
+      "descricao": "MTA-STS — policy that enforces TLS for email delivery.",
+      "detalhe": {
+        "ok": "MTA-STS policy published (mode={mode}).",
+        "ausente": "No MTA-STS policy (_mta-sts) found.",
+        "sem-email": "Domain without MX — the site doesn't use its own email; MTA-STS doesn't apply."
+      },
+      "dica": "Publish a TXT at `_mta-sts.domain` like `v=STSv1; id=20240901; mx: your-mx; mode: enforce` and host the policy at `/.well-known/mta-sts.txt`."
     },
     "cookies": {
       "titulo": "Session cookies",

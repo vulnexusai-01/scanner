@@ -27,6 +27,8 @@ export type ItemDados = {
   registros?: string;
   estado?: string;
   refletido?: boolean;
+  semEmail?: boolean;
+  mode?: string;
 };
 
 export type ItemCheck = {
@@ -207,37 +209,50 @@ function lookupFixado(ip: string): net.LookupFunction {
   };
 }
 
+const STATUS_COM_FALLBACK_GET = new Set([403, 405, 501]);
+
 function requisicaoPinada(
   url: URL,
   ip: string,
   timeoutMs = TIMEOUT_REQUISICAO_MS,
-  headersExtras: Record<string, string> = {}
+  headersExtras: Record<string, string> = {},
+  metodo: "HEAD" | "GET" = "HEAD"
 ): Promise<RespostaPinada> {
   return new Promise((resolve, reject) => {
     const lib = url.protocol === "https:" ? https : http;
+    const headers: Record<string, string> = {
+      host: url.host,
+      "user-agent": USER_AGENT,
+      ...headersExtras,
+    };
+    if (metodo === "GET") headers["range"] = "bytes=0-0";
     const req = lib.request(
       url,
       {
-        method: "HEAD",
+        method: metodo,
         signal: AbortSignal.timeout(timeoutMs),
         lookup: lookupFixado(ip),
-        headers: {
-          host: url.host,
-          "user-agent": USER_AGENT,
-          ...headersExtras,
-        },
+        headers,
       },
       res => {
+        const status = res.statusCode ?? 0;
+        // Alguns servidores (CDNs, WordPress, etc.) rejeitam HEAD com 403/405/501.
+        // Nesses casos, refazemos com GET + Range para colher apenas os headers.
+        if (metodo === "HEAD" && STATUS_COM_FALLBACK_GET.has(status)) {
+          res.resume();
+          resolve(requisicaoPinada(url, ip, timeoutMs, headersExtras, "GET"));
+          return;
+        }
         res.resume();
-        const headers = new Headers();
+        const headersFinais = new Headers();
         for (const [chave, valor] of Object.entries(res.headers)) {
           if (Array.isArray(valor)) {
-            for (const item of valor) headers.append(chave, item);
+            for (const item of valor) headersFinais.append(chave, item);
           } else if (valor !== undefined) {
-            headers.set(chave, valor);
+            headersFinais.set(chave, valor);
           }
         }
-        resolve({ status: res.statusCode ?? 0, url: url.href, headers });
+        resolve({ status, url: url.href, headers: headersFinais });
       }
     );
     req.on("error", () => {
@@ -414,6 +429,18 @@ async function checaSpf(host: string): Promise<{ registros: string[]; temSpf: bo
   return { registros, temSpf: spf.length > 0 };
 }
 
+export async function checaMx(host: string): Promise<{ temMx: boolean; trocas: Array<{ prioridade: number; exchange: string }> }> {
+  try {
+    const registros = await dns.resolveMx(host);
+    return {
+      temMx: registros.length > 0,
+      trocas: registros.map(r => ({ prioridade: r.priority, exchange: r.exchange })).sort((a, b) => a.prioridade - b.prioridade),
+    };
+  } catch {
+    return { temMx: false, trocas: [] };
+  }
+}
+
 async function checaDmarc(host: string): Promise<{ registros: string[]; temDmarc: boolean }> {
   const registros = await registrosTxt(`_dmarc.${host}`);
   return { registros, temDmarc: registros.length > 0 };
@@ -430,6 +457,14 @@ async function checaDkim(host: string): Promise<{ encontrado: string[]; sucesso:
   );
   const encontrado = resultados.filter((r): r is string => r !== null);
   return { encontrado, sucesso: encontrado.length > 0 };
+}
+
+export async function checaMtaSts(host: string): Promise<{ registros: string[]; sucesso: boolean; mode?: string }> {
+  const registros = await registrosTxt(`_mta-sts.${host}`);
+  const mta = registros.filter(r => r.toLowerCase().startsWith("v=sts"));
+  if (mta.length === 0) return { registros, sucesso: false };
+  const mode = mta[0]!.match(/mode\s*[:=]\s*(\w+)/i)?.[1]?.toLowerCase();
+  return { registros: mta, sucesso: true, mode };
 }
 
 import { statusDosItens, calculaFracaoCategoria } from "./fracao-categoria";
@@ -587,11 +622,13 @@ export async function verificarSite(input: string): Promise<ResultadoCheck> {
   const hostname = new URL(final.url).hostname;
   const base = dominioBase(hostname);
 
-  const [infoTls, spf, dmarc, dkim, corsItens] = await Promise.all([
+  const [infoTls, spf, dmarc, dkim, mx, mtaSts, corsItens] = await Promise.all([
     https ? checaTls(hostname) : Promise.resolve(undefined),
     checaSpf(base),
     checaDmarc(base),
     checaDkim(base),
+    checaMx(base),
+    checaMtaSts(base),
     checaCors(final.url),
   ]);
 
@@ -650,23 +687,42 @@ export async function verificarSite(input: string): Promise<ResultadoCheck> {
   categorias.push({ id: "headers", peso: 30, itens: itensHeaders });
 
   // --- DNS & Email (peso 20) ---
+  // Domínios sem MX não usam email próprio — nesse caso SPF/DMARC/DKIM/MTA-STS
+  // não se aplicam e não devem derrubar o score de segurança do site.
+  const temEmail = mx.temMx;
+  const emailNaoUsado = { semEmail: true };
   const itensDns: ItemCheck[] = [];
-  itensDns.push({
-    id: "spf",
-    status: spf.temSpf ? "ok" : "falha",
-    dados: spf.temSpf
-      ? { quantidade: spf.registros.filter(r => r.toLowerCase().startsWith("v=spf1")).length }
-      : undefined,
-  });
-  itensDns.push({
-    id: "dmarc",
-    status: dmarc.temDmarc ? "ok" : "falha",
-  });
-  itensDns.push({
-    id: "dkim",
-    status: dkim.sucesso ? "ok" : "aviso",
-    dados: dkim.sucesso ? { seletores: dkim.encontrado.join(", ") } : undefined,
-  });
+  if (!temEmail) {
+    itensDns.push({ id: "spf", status: "ok", dados: emailNaoUsado });
+    itensDns.push({ id: "dmarc", status: "ok", dados: emailNaoUsado });
+    itensDns.push({ id: "dkim", status: "ok", dados: emailNaoUsado });
+    itensDns.push({ id: "mta-sts", status: "ok", dados: emailNaoUsado });
+  } else {
+    itensDns.push({
+      id: "spf",
+      status: spf.temSpf ? "ok" : "falha",
+      dados: spf.temSpf
+        ? { quantidade: spf.registros.filter(r => r.toLowerCase().startsWith("v=spf1")).length }
+        : undefined,
+    });
+    itensDns.push({
+      id: "dmarc",
+      status: dmarc.temDmarc ? "ok" : "falha",
+      dados: dmarc.temDmarc ? undefined : undefined,
+    });
+    itensDns.push({
+      id: "dkim",
+      status: dkim.sucesso ? "ok" : "aviso",
+      dados: dkim.sucesso ? { seletores: dkim.encontrado.join(", ") } : undefined,
+    });
+    itensDns.push({
+      id: "mta-sts",
+      status: mtaSts.sucesso ? "ok" : "aviso",
+      dados: mtaSts.sucesso
+        ? { mode: mtaSts.mode ?? "" }
+        : undefined,
+    });
+  }
   categorias.push({ id: "dns", peso: 15, itens: itensDns });
 
   // --- Cookies (peso 10) ---
@@ -740,7 +796,11 @@ export async function verificarSite(input: string): Promise<ResultadoCheck> {
   categorias.push({ id: "conteudo", peso: 7, itens: itensRecursos });
 
   // --- Infraestrutura (peso 5) ---
-  const [caa, safeBrowsing] = await Promise.all([checaCaa(base), checaSafeBrowsing(final.url)]);
+  const TEM_CHAVE_SAFE_BROWSING = !!process.env.GOOGLE_SAFE_BROWSING_KEY;
+  const [caa, safeBrowsing] = await Promise.all([
+    checaCaa(base),
+    TEM_CHAVE_SAFE_BROWSING ? checaSafeBrowsing(final.url) : Promise.resolve(undefined),
+  ]);
 
   const temIssue = caa.registros.some(r => r.tag === "issue");
   const itensInfra: ItemCheck[] = [
@@ -751,12 +811,16 @@ export async function verificarSite(input: string): Promise<ResultadoCheck> {
         ? { registros: caa.registros.map(r => `${r.tag}=${r.value}`).join(", ") }
         : undefined,
     },
-    {
+  ];
+  // Sem chave do Google Safe Browsing, o item é omitido (é verificação opcional
+  // que só poluiria o score com "aviso" eterno).
+  if (safeBrowsing) {
+    itensInfra.push({
       id: "safe-browsing",
       status: safeBrowsing.status,
       dados: { estado: safeBrowsing.estado },
-    },
-  ];
+    });
+  }
   categorias.push({ id: "infra", peso: 3, itens: itensInfra });
 
   // --- Score ---

@@ -2,30 +2,30 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { listarArtigos, type LocaleArtigo } from "@/lib/blog";
+import { urlLocale } from "@/lib/rotas";
 import Topo from "../components/topo";
 import Rodape from "../components/rodape";
 import AdSlot from "./components/ad-slot";
 
 type Props = { params: Promise<{ locale: string }> };
 
-const BASE = "https://vulnexusai.com";
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "blog" });
-  const url = locale === "pt" ? "/blog" : "/en/blog";
+  const url = urlLocale(locale, "/blog");
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
     alternates: {
       canonical: url,
       languages: {
-        pt: `${BASE}/blog`,
-        en: `${BASE}/en/blog`,
+        pt: `${urlLocale("pt", "/blog")}`,
+        en: `${urlLocale("en", "/blog")}`,
+        es: `${urlLocale("es", "/blog")}`,
       },
     },
     openGraph: {
-      url: `${BASE}${url}`,
+      url,
       title: t("metaTitle"),
       description: t("metaDescription"),
     },

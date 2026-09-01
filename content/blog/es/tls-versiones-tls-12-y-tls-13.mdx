@@ -1,0 +1,61 @@
+---
+titulo: "TLS: qué versión usar y por qué desactivar TLS 1.0 y 1.1"
+descricao: "TLS 1.2 y TLS 1.3 son las versiones seguras del protocolo. Ve cómo se comparan, por qué TLS 1.0 y 1.1 están obsoletas y cómo configurar el servidor."
+data: "2026-08-14"
+slug: "tls-versiones-tls-12-y-tls-13"
+---
+
+El candado del navegador depende del TLS — el protocolo que cifra la conexión entre el usuario y el servidor. Pero no basta con "tener HTTPS": la versión del TLS importa tanto como el certificado. Mantener habilitadas versiones antiguas es una de las formas más silenciosas en que un sitio queda vulnerable.
+
+## Qué es TLS
+
+El TLS (Transport Layer Security) es el sucesor del SSL y la base del HTTPS. Protege tres cosas en la conexión: confidencialidad (nadie lee el tráfico), integridad (nadie altera el tráfico) y autenticación (el cliente valida la identidad del servidor mediante el certificado).
+
+La negociación ocurre al inicio de cada conexión: cliente y servidor deciden en conjunto qué versión y qué cifras usar. Es ahí donde aparece la configuración incorrecta — si el servidor acepta versiones antiguas, se usarán.
+
+## Por qué TLS 1.0 y 1.1 están obsoletas
+
+TLS 1.0 (1999) y TLS 1.1 (2006) acumulan décadas de ataques conocidos: BEAST, POODLE (contra SSL 3.0 y estándares relacionados), Lucky 13 y otros. Algunas fallas están en la base del protocolo y no pueden corregirse por configuración — solo con el cambio de versión.
+
+En 2020, los principales navegadores discontinuaron TLS 1.0 y 1.1 y pasaron a mostrar un aviso de conexión insegura en sitios que solo las soportan. Hoy, un servidor que acepta TLS 1.0 falla la auditoría, aunque el certificado sea válido.
+
+## TLS 1.2 — el piso actual
+
+El TLS 1.2 (2008) es soportado por cualquier cliente moderno y sigue siendo la versión mínima recomendada. Con una configuración adecuada de cifras, es seguro para producción. Si solo puedes cambiar una cosa en el servidor, desactiva 1.0/1.1 y mantén 1.2 como mínimo.
+
+## TLS 1.3 — la versión actual
+
+El TLS 1.3 (2018) eliminó cifras y modos considerados frágiles, reduce el número de idas y vueltas en la negociación (conexiones más rápidas) y eliminó la posibilidad de renegociar en medio de la conexión — una fuente histórica de ataques.
+
+Los navegadores modernos usan TLS 1.3 cuando el servidor lo ofrece. Habilitar 1.3 junto con 1.2 da el mejor resultado: amplia compatibilidad con clientes nuevos y seguridad máxima.
+
+## Cómo configurarlo
+
+**nginx:**
+
+```nginx
+ssl_protocols TLSv1.2 TLSv1.3;
+```
+
+**Apache:**
+
+```apache
+SSLProtocol TLSv1.2 TLSv1.3
+```
+
+**Cloudflare y otros CDNs** — la mayoría gestiona la versión automáticamente, pero permite elegir el mínimo en "TLS" o "Security Level" en el panel.
+
+Después del cambio, prueba: la negociación debe ocurrir en TLS 1.2 o 1.3, nunca por debajo.
+
+## Errores comunes
+
+- **Mantener TLS 1.0/1.1 "solo para clientes antiguos"**: la mayoría de esos clientes puede actualizarse; el riesgo de mantener las versiones es mayor que el beneficio.
+- **Desactivar 1.2 junto con 1.0/1.1**: algunos scripts antiguos asumen que "quitar todo lo antiguo" incluye el 1.2. El 1.2 es el piso, no el techo.
+- **Aceptar cifras débiles en TLS 1.2**: la versión correcta con una cifra incorrecta sigue siendo insegura — revisa la lista de cifras.
+- **Confiar solo en el certificado**: un certificado válido no indica una versión segura; la configuración del servidor es un punto aparte.
+- **Usar herramientas que solo prueban el sitio por HTTPS**: verifica la versión realmente negociada, no solo el candado.
+- **Olvidar los servidores internos**: la API, los paneles y los subdominios también necesitan la misma regla.
+
+## Cómo verificar
+
+El escáner de VulnexusAI se conecta al sitio, registra qué versión de TLS se negoció y señala si TLS 1.0 o 1.1 están habilitados. Junto con la comprobación del certificado, es la categoría "HTTPS y Certificado" del informe — y una corrección de minutos en el servidor.

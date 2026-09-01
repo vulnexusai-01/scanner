@@ -3,6 +3,8 @@
 import { useLocale, useTranslations } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 
+const IDIOMAS_TOPO = ["pt", "en", "es"] as const;
+
 export default function Topo({ mostraHistorico = false }: { mostraHistorico?: boolean }) {
   const t = useTranslations();
   const locale = useLocale();
@@ -46,22 +48,17 @@ export default function Topo({ mostraHistorico = false }: { mostraHistorico?: bo
           {t("nav.blog")}
         </Link>
         <span className="lang-toggle">
-          <button
-            type="button"
-            className={`lang-btn${locale === "pt" ? " lang-btn-ativo" : ""}`}
-            onClick={() => router.replace(pathname, { locale: "pt" })}
-            aria-label={t("langSwitcher.pt")}
-          >
-            PT
-          </button>
-          <button
-            type="button"
-            className={`lang-btn${locale === "en" ? " lang-btn-ativo" : ""}`}
-            onClick={() => router.replace(pathname, { locale: "en" })}
-            aria-label={t("langSwitcher.en")}
-          >
-            EN
-          </button>
+          {IDIOMAS_TOPO.map(idioma => (
+            <button
+              key={idioma}
+              type="button"
+              className={`lang-btn${locale === idioma ? " lang-btn-ativo" : ""}`}
+              onClick={() => router.replace(pathname, { locale: idioma })}
+              aria-label={t(`langSwitcher.${idioma}`)}
+            >
+              {idioma.toUpperCase()}
+            </button>
+          ))}
         </span>
       </nav>
     </header>

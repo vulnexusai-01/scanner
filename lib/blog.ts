@@ -9,17 +9,17 @@ export type FrontmatterArtigo = {
   slug: string;
 };
 
-export type LocaleArtigo = "pt" | "en";
+export type LocaleArtigo = "pt" | "en" | "es";
 
-export const PARES_DE_ARTIGOS: ReadonlyArray<{ pt: string; en: string }> = [
-  { pt: "o-que-e-hsts", en: "what-is-hsts" },
-  { pt: "content-security-policy-explicada", en: "content-security-policy-explained" },
-  { pt: "spf-dkim-dmarc-guia-completo", en: "spf-dkim-dmarc-complete-guide" },
-  { pt: "cookies-seguros-secure-httponly-samesite", en: "secure-cookies-secure-httponly-samesite" },
-  { pt: "arquivos-sensiveis-expostos", en: "sensitive-files-exposed" },
-  { pt: "cors-o-que-e-e-como-configurar", en: "cors-what-it-is-and-how-to-configure" },
-  { pt: "tls-versoes-tls-12-e-tls-13", en: "tls-versions-tls-12-and-tls-13" },
-  { pt: "robots-txt-e-security-txt", en: "robots-txt-and-security-txt" },
+export const PARES_DE_ARTIGOS: ReadonlyArray<{ pt: string; en: string; es: string }> = [
+  { pt: "o-que-e-hsts", en: "what-is-hsts", es: "que-es-hsts" },
+  { pt: "content-security-policy-explicada", en: "content-security-policy-explained", es: "content-security-policy-explicada" },
+  { pt: "spf-dkim-dmarc-guia-completo", en: "spf-dkim-dmarc-complete-guide", es: "spf-dkim-dmarc-guia-completo" },
+  { pt: "cookies-seguros-secure-httponly-samesite", en: "secure-cookies-secure-httponly-samesite", es: "cookies-seguras-secure-httponly-samesite" },
+  { pt: "arquivos-sensiveis-expostos", en: "sensitive-files-exposed", es: "archivos-sensibles-expuestos" },
+  { pt: "cors-o-que-e-e-como-configurar", en: "cors-what-it-is-and-how-to-configure", es: "cors-que-es-y-como-configurar" },
+  { pt: "tls-versoes-tls-12-e-tls-13", en: "tls-versions-tls-12-and-tls-13", es: "tls-versiones-tls-12-y-tls-13" },
+  { pt: "robots-txt-e-security-txt", en: "robots-txt-and-security-txt", es: "robots-txt-y-security-txt" },
 ];
 
 const RELACIONADOS: Record<string, string[]> = {
@@ -40,25 +40,44 @@ export function caminhoArtigo(locale: LocaleArtigo, slug: string): string {
 }
 
 export function artigoCompleto(locale: LocaleArtigo, slug: string): { data: FrontmatterArtigo; content: string } {
-  const conteudo = readFileSync(caminhoArtigo(locale, slug), "utf8");
-  const { data, content } = matter(conteudo);
-  return { data: data as FrontmatterArtigo, content };
+  try {
+    const conteudo = readFileSync(caminhoArtigo(locale, slug), "utf8");
+    const { data, content } = matter(conteudo);
+    return { data: data as FrontmatterArtigo, content };
+  } catch {
+    return {
+      data: { titulo: slug, descricao: "", data: "1970-01-01", slug },
+      content: "",
+    };
+  }
 }
 
 export function listarArtigos(locale: LocaleArtigo): Array<{ slug: string; frontmatter: FrontmatterArtigo }> {
-  const dir = path.join(BASE, locale);
-  const slugs = readdirSync(dir)
+  let dir: string[];
+  try {
+    dir = readdirSync(path.join(BASE, locale));
+  } catch {
+    return [];
+  }
+  const slugs = dir
     .filter(arquivo => arquivo.endsWith(".mdx"))
     .map(arquivo => arquivo.replace(/\.mdx$/, ""));
   return slugs
-    .map(slug => ({ slug, frontmatter: artigoCompleto(locale, slug).data }))
+    .map(slug => {
+      const { data } = artigoCompleto(locale, slug);
+      return { slug, frontmatter: data };
+    })
+    .filter(a => a.frontmatter.descricao !== "" && a.frontmatter.titulo !== a.frontmatter.slug)
     .sort((a, b) => (a.frontmatter.data < b.frontmatter.data ? 1 : -1));
 }
 
-export function paresDeSlug(locale: LocaleArtigo, slug: string): { slugPt: string; slugEn: string } | undefined {
+export function paresDeSlug(
+  locale: LocaleArtigo,
+  slug: string
+): { pt: string; en: string; es: string; slugPt: string; slugEn: string; slugEs: string } | undefined {
   const par = PARES_DE_ARTIGOS.find(p => p[locale] === slug);
   if (!par) return undefined;
-  return { slugPt: par.pt, slugEn: par.en };
+  return { pt: par.pt, en: par.en, es: par.es, slugPt: par.pt, slugEn: par.en, slugEs: par.es };
 }
 
 export function artigosRelacionados(
@@ -70,9 +89,11 @@ export function artigosRelacionados(
   const slugsPt = (RELACIONADOS[par.pt] ?? []).filter(s => s !== par.pt).slice(0, 2);
   return slugsPt
     .map(ptSlug => paresDeSlug(locale, ptSlug))
-    .filter((p): p is { slugPt: string; slugEn: string } => Boolean(p))
+    .filter(
+      (p): p is { pt: string; en: string; es: string; slugPt: string; slugEn: string; slugEs: string } => Boolean(p)
+    )
     .map(p => {
-      const slugAlvo = locale === "pt" ? p.slugPt : p.slugEn;
+      const slugAlvo = p[locale];
       return { slug: slugAlvo, frontmatter: artigoCompleto(locale, slugAlvo).data };
     });
 }
@@ -81,6 +102,7 @@ export function rotasBlog(): Array<{ locale: LocaleArtigo; slug: string }> {
   return PARES_DE_ARTIGOS.flatMap(par => [
     { locale: "pt" as const, slug: par.pt },
     { locale: "en" as const, slug: par.en },
+    { locale: "es" as const, slug: par.es },
   ]);
 }
 

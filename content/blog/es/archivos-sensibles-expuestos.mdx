@@ -1,0 +1,68 @@
+---
+titulo: "Por qué archivos como .env y .git quedan expuestos (y cómo evitarlo)"
+descricao: "Archivos .env, directorios .git y copias de seguridad públicas filtran contraseñas, claves y el código fuente del sitio. Entiende por qué ocurre y cómo bloquearlos."
+data: "2026-07-30"
+slug: "archivos-sensibles-expuestos"
+---
+
+Todo servidor web expone lo que esté dentro de la carpeta raíz (web root). Si un archivo sensible terminó ahí — por error, copia, copia de seguridad o falta de regla de bloqueo — queda accesible para cualquiera que adivine la ruta. Los casos más comunes son el archivo `.env`, el directorio `.git` y las copias de seguridad de archivos de configuración.
+
+## Lo que suele filtrarse
+
+**`.env`** — concentra secretos: claves de API, contraseñas de base de datos, tokens. Está hecho para vivir en el servidor (o en el entorno de deploy), no para descargarse. Un `.env` accesible públicamente es una contraseña en manos de cualquier visitante.
+
+**`.git`** — contiene todo el historial del repositorio (`.git/config`, `.git/HEAD`, los objetos con el contenido). Con él expuesto, es posible reconstruir el código fuente completo, incluidas versiones antiguas que pueden contener credenciales.
+
+**Copias de seguridad y temporales** — nombres predecibles como `wp-config.php.bak`, `config.php~`, `config.php.old` o `banco.sql` en el web root se localizan fácilmente. Las copias de seguridad deberían estar fuera del web root, no al lado de los archivos públicos.
+
+**Otros archivos de metadatos** — `.DS_Store` (macOS) registra la lista de carpetas del Mac que lo generó y ya se ha usado para mapear la estructura de directorios de un sitio.
+
+## Por qué ocurre
+
+- **Deploy directo desde el repositorio**: quien sube el proyecto como una "carga de la carpeta" lleva consigo `.git`, `.env` y todo lo demás.
+- **Falta de reglas de bloqueo**: el servidor entrega cualquier archivo existente; sin una regla específica, `.git/config` se sirve como cualquier otro.
+- **Copias de seguridad dentro del web root**: para "facilitarlo", las copias se guardan en la carpeta pública — y se quedan ahí.
+- **Archivos de editor del sistema operativo** (ej.: `config.php~`) creados localmente y subidos sin revisión.
+
+## Cómo evitarlo
+
+**No pongas secretos en el repositorio.** Usa `.gitignore` para `.env`, copias de seguridad y archivos locales. Publica solo un `.env.example` con nombres de variables, sin valores reales.
+
+**No dejes el `.git` en el servidor de producción.** Haz el deploy a partir del build (carpeta generada), no del repositorio clonado. Si no es posible, bloquea el acceso.
+
+**Bloquea las rutas sensibles en el servidor.** Ejemplos:
+
+**nginx:**
+
+```nginx
+location ~ /\.(?!well-known) {
+  deny all;
+}
+location ~ (\.env|\.git|\.DS_Store|\.sql|\.bak|config\.php|wp-config\.php) {
+  deny all;
+}
+```
+
+**Apache (.htaccess):**
+
+```apache
+RedirectMatch 404 /\.(env|git|DS_Store|sql|bak)
+```
+
+**CDN / WAF:** muchos servicios de protección permiten bloquear por defecto rutas como `/.env`, `/.git` y `wp-config.php`, o puedes crear reglas personalizadas.
+
+**Elimina lo que ya se filtró.** Si algún archivo ya estuvo accesible, considera que se descargó: rota las claves y contraseñas que contenía, no solo bloquees el acceso.
+
+**Verifica antes de publicar.** Después de cada deploy, confirma que las rutas sensibles respondan con error (403/404) y no con el contenido.
+
+## Errores comunes
+
+- **Bloquear solo el acceso directo a `/.git/`**: las reglas deben cubrir todo el directorio y las variaciones de ruta (ej.: con URL-encoding).
+- **Pensar que `.gitignore` protege el servidor**: evita que el archivo entre en el repositorio; no impide que el servidor sirva un archivo que ya existe ahí.
+- **Guardar secretos en versiones antiguas del repositorio**: aunque el `.env` actual no se filtre, un `.git` expuesto entrega el historial con las versiones anteriores.
+- **Copias de seguridad con nombres predecibles en el web root**: `site.sql`, `backup.zip`, `config.php.bak` son las primeras rutas que prueban los escáneres.
+- **Descubrir el problema solo después de la fuga**: la verificación debe ser continua, porque un nuevo deploy puede reintroducir el problema.
+
+## Cómo verificar
+
+El escáner de VulnexusAI prueba una lista de rutas sensibles conocidas — `.env`, `.git/config`, `.git/HEAD`, copias de `wp-config.php` y `config.php`, `.DS_Store` — e informa si alguna está accesible públicamente. Si aparece una falla, elimina el archivo del servidor o bloquea la ruta, rota los secretos implicados y vuelve a probar para confirmar.

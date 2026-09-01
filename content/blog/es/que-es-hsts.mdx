@@ -1,0 +1,74 @@
+---
+titulo: "Qué es HSTS y por qué tu sitio lo necesita"
+descricao: "El Strict-Transport-Security (HSTS) obliga al navegador a usar solo HTTPS en tu dominio. Entiende cómo funciona, cómo configurarlo y qué errores evitar."
+data: "2026-08-11"
+slug: "que-es-hsts"
+---
+
+Cuando accedes a un sitio por HTTPS y el servidor envía el header `Strict-Transport-Security`, el navegador pasa a exigir HTTPS para ese dominio durante un período de tiempo. Ese mecanismo se llama HSTS (HTTP Strict Transport Security) y es una de las defensas más simples y baratas contra ataques que degradan la conexión.
+
+## Qué es HSTS
+
+El HSTS es un header de respuesta que le dice al navegador: "a partir de ahora, solo háblame por HTTPS". Después de recibirlo, el navegador convierte automáticamente cualquier acceso a `http://tu-sitio.com` a `https://tu-sitio.com` — incluso antes de hacer la petición.
+
+El header tiene esta forma:
+
+```
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+```
+
+- `max-age` — durante cuántos segundos el navegador debe recordar la regla (31536000 segundos = 1 año).
+- `includeSubDomains` — aplica la regla también a los subdominios (tu-sitio.com, www.tu-sitio.com, app.tu-sitio.com).
+- `preload` — autoriza al dominio a ser enviado a la lista de precarga de HSTS.
+
+## Cómo funciona en la práctica
+
+El proceso ocurre así:
+
+1. Accedes al sitio por HTTPS. La respuesta trae el header HSTS.
+2. El navegador guarda la regla en la memoria de navegación durante el tiempo de `max-age`.
+3. En las próximas visitas, aunque escribas `http://`, el navegador usa HTTPS.
+4. En navegadores con la lista de precarga (preload), la regla vale desde la primera visita, sin depender del header.
+
+El punto importante: mientras el navegador respete la regla, un atacante en una red intermedia (como un Wi-Fi público) no puede interceptar la petición y rebajarla a HTTP antes de que salga del navegador.
+
+## Por qué importa
+
+Sin HSTS, quien quiera interceptar el tráfico puede intentar el llamado SSL stripping: mantener la conversación en HTTP entre la víctima y el sitio, incluso si el sitio soporta HTTPS. El HSTS impide esa degradación porque el navegador rechaza HTTP para los dominios que ya recibieron el header.
+
+Vale la pena notar la limitación principal: el HSTS solo protege después de la primera visita que recibió el header. Para proteger también la primera visita, el dominio debe estar en la lista de precarga de los navegadores.
+
+## Cómo configurarlo
+
+El header debe enviarse en todas las respuestas HTTPS. Algunos ejemplos:
+
+**nginx**
+
+```nginx
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+```
+
+**Apache**
+
+```apache
+Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+```
+
+**Cloudflare y otros CDNs** — la mayoría ofrece la opción de activar el HSTS en el panel, incluso con el envío para el preload.
+
+**Vercel / Next.js** — define el header en el archivo de configuración (por ejemplo, en la configuración de headers de Next.js o en la plataforma de hospedaje).
+
+## Errores comunes
+
+- **`max-age` bajo**: los valores cortos protegen poco, porque la regla expira rápido en el navegador.
+- **Olvidar `includeSubDomains`**: sin él, los subdominios siguen accesibles por HTTP.
+- **Enviar el header en respuestas HTTP**: los navegadores ignoran el HSTS recibido por HTTP; solo vale en HTTPS.
+- **Activarlo antes de tener HTTPS en todos los subdominios**: con `includeSubDomains`, cualquier subdominio sin HTTPS queda inaccesible. Actívalo solo cuando todo esté cubierto.
+- **Confiar en que quitar el header resuelve rápido**: el navegador solo vuelve a aceptar HTTP cuando expira el `max-age` (a menos que la regla se limpie manualmente).
+- **Enviarlo al preload sin cumplir los requisitos**: la lista exige un `max-age` de al menos 31536000 segundos, `includeSubDomains` y el dominio entero en HTTPS.
+
+## Cómo verificar
+
+El escáner de VulnexusAI verifica si el sitio envía el header `Strict-Transport-Security` y también si las visitas por HTTP se redirigen a HTTPS. Es uno de los primeros puntos del informe — y uno de los más fáciles de corregir.
+
+Antes de aplicar la configuración, prueba con una política inicial más corta (por ejemplo, unos días) y solo aumenta el `max-age` después de confirmar que todo funciona.

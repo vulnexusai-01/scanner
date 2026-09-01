@@ -13,12 +13,30 @@ export default async function Home({ params }: Props) {
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: faqItems.map(item => ({
-      "@type": "Question",
-      name: item.q,
-      acceptedAnswer: { "@type": "Answer", text: item.a },
-    })),
+    "@graph": [
+      {
+        "@type": "FAQPage",
+        mainEntity: faqItems.map(item => ({
+          "@type": "Question",
+          name: item.q,
+          acceptedAnswer: { "@type": "Answer", text: item.a },
+        })),
+      },
+      {
+        "@type": "WebApplication",
+        name: "VulnexusAI",
+        url: "https://vulnexusai.com",
+        description: (messages.meta?.jsonLdDescription as string | undefined) ?? "",
+        applicationCategory: "SecurityApplication",
+        operatingSystem: "Any",
+        inLanguage: locale,
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "BRL",
+        },
+      },
+    ],
   };
 
   const c = await cookies();

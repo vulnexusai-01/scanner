@@ -13,6 +13,7 @@ import {
   type FrontmatterArtigo,
   type LocaleArtigo,
 } from "@/lib/blog";
+import { urlLocale } from "@/lib/rotas";
 import Topo from "../../components/topo";
 import Rodape from "../../components/rodape";
 import VerificarCta from "../components/verificar-cta";
@@ -32,20 +33,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { data } = artigoCompleto(locale as LocaleArtigo, slug);
   const pares = paresDeSlug(locale as LocaleArtigo, slug);
   if (!pares) return {};
-  const url = locale === "pt" ? `/blog/${slug}` : `/en/blog/${slug}`;
+  const url = urlLocale(locale, `/blog/${slug}`);
   return {
     title: `${data.titulo} | VulnexusAI`,
     description: data.descricao,
     alternates: {
       canonical: url,
       languages: {
-        pt: `${BASE}/blog/${pares.slugPt}`,
-        en: `${BASE}/en/blog/${pares.slugEn}`,
+        pt: `${urlLocale("pt", `/blog/${pares.slugPt}`)}`,
+        en: `${urlLocale("en", `/blog/${pares.slugEn}`)}`,
+        es: `${urlLocale("es", `/blog/${pares.slugEs}`)}`,
       },
     },
     openGraph: {
       type: "article",
-      url: `${BASE}${url}`,
+      url,
       title: data.titulo,
       description: data.descricao,
       publishedTime: new Date(`${data.data}T00:00:00Z`).toISOString(),
@@ -75,20 +77,47 @@ export default async function ArtigoPage({ params }: Props) {
   const t = await getTranslations({ locale, namespace: "blog" });
   const tRoot = await getTranslations({ locale });
   const pares = paresDeSlug(l, slug);
-  const urlLocal = locale === "pt" ? `/blog/${slug}` : `/en/blog/${slug}`;
-  const idiomaAlternativo = locale === "pt" ? "en" : "pt";
+  const urlLocal = urlLocale(l, `/blog/${slug}`);
+  const outrosIdiomas = (["pt", "en", "es"] as LocaleArtigo[]).filter(idioma => idioma !== l);
   const relacionados = artigosRelacionados(l, slug);
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: data.titulo,
-    description: data.descricao,
-    datePublished: new Date(`${data.data}T00:00:00Z`).toISOString(),
-    inLanguage: locale,
-    author: { "@type": "Organization", name: "VulnexusAI", url: BASE },
-    publisher: { "@type": "Organization", name: "VulnexusAI", url: BASE },
-    mainEntityOfPage: `${BASE}${urlLocal}`,
+    "@graph": [
+      {
+        "@type": "BlogPosting",
+        headline: data.titulo,
+        description: data.descricao,
+        datePublished: new Date(`${data.data}T00:00:00Z`).toISOString(),
+        inLanguage: locale,
+        author: { "@type": "Organization", name: "VulnexusAI", url: BASE },
+        publisher: { "@type": "Organization", name: "VulnexusAI", url: BASE },
+        mainEntityOfPage: urlLocal,
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: tRoot("nav.verificar"),
+            item: urlLocale(l, "/"),
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: t("titulo"),
+            item: urlLocale(l, "/blog"),
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: data.titulo,
+            item: urlLocal,
+          },
+        ],
+      },
+    ],
   };
 
   return (
@@ -108,11 +137,18 @@ export default async function ArtigoPage({ params }: Props) {
           })}
         </p>
         <div className="artigo-corpo">{corpo}</div>
-        {pares && (
+        {pares && outrosIdiomas.length > 0 && (
           <p className="artigo-outro-idioma">
-            <Link href={`/blog/${idiomaAlternativo === "pt" ? pares.slugPt : pares.slugEn}`}>
-              {t("lerEmOutroIdioma", { idioma: tRoot(`langSwitcher.${idiomaAlternativo}`) })}
-            </Link>
+            {outrosIdiomas.map(idioma => (
+              <Link
+                key={idioma}
+                href={`/blog/${pares[idioma]}`}
+                locale={idioma}
+                className="artigo-outro-idioma-link"
+              >
+                {t("lerEmOutroIdioma", { idioma: tRoot(`langSwitcher.${idioma}`) })}
+              </Link>
+            ))}
           </p>
         )}
         {relacionados.length > 0 && (

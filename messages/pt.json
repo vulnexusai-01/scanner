@@ -15,7 +15,8 @@
   },
   "langSwitcher": {
     "pt": "Português",
-    "en": "Inglês"
+    "en": "Inglês",
+    "es": "Espanhol"
   },
   "hero": {
     "eyebrow": "VULNEXUSAI · FERRAMENTA DE SEGURANÇA",
@@ -386,7 +387,8 @@
       "descricao": "SPF — autoriza quais servidores podem enviar email em nome do domínio.",
       "detalhe": {
         "ok": "Registro SPF encontrado ({quantidade} TXT).",
-        "ausente": "Nenhum registro SPF encontrado."
+        "ausente": "Nenhum registro SPF encontrado.",
+        "sem-email": "Domínio sem MX — o site não usa email próprio; SPF não se aplica."
       },
       "dica": "Publique um registro TXT como `v=spf1 include:_spf.provedor ~all` no DNS do domínio."
     },
@@ -395,7 +397,8 @@
       "descricao": "DMARC — política de como tratar emails forjados com seu domínio.",
       "detalhe": {
         "ok": "Registro DMARC publicado.",
-        "ausente": "Nenhum registro DMARC (_dmarc) encontrado."
+        "ausente": "Nenhum registro DMARC (_dmarc) encontrado.",
+        "sem-email": "Domínio sem MX — o site não usa email próprio; DMARC não se aplica."
       },
       "dica": "Publique um registro TXT em `_dmarc.dominio` (ex.: `v=DMARC1; p=none; rua=mailto:seu@email`) e depois evolua a política."
     },
@@ -404,9 +407,20 @@
       "descricao": "DKIM — assinatura digital que valida a autenticidade dos emails.",
       "detalhe": {
         "ok": "Seletor(es) encontrado(s): {seletores}.",
-        "ausente": "Nenhum seletor DKIM comum encontrado."
+        "ausente": "Nenhum seletor DKIM comum encontrado.",
+        "sem-email": "Domínio sem MX — o site não usa email próprio; DKIM não se aplica."
       },
       "dica": "Configure DKIM no seu provedor de email e publique a chave pública em `seletor._domainkey.dominio`."
+    },
+    "mta-sts": {
+      "titulo": "MTA-STS",
+      "descricao": "MTA-STS — política que força o uso de TLS na entrega de email.",
+      "detalhe": {
+        "ok": "Política MTA-STS publicada (mode={mode}).",
+        "ausente": "Nenhuma política MTA-STS (_mta-sts) encontrada.",
+        "sem-email": "Domínio sem MX — o site não usa email próprio; MTA-STS não se aplica."
+      },
+      "dica": "Publique em `_mta-sts.dominio` um TXT como `v=STSv1; id=20240901; mx: seu-mx; mode: enforce` e hospede a política em `/.well-known/mta-sts.txt`."
     },
     "cookies": {
       "titulo": "Cookies de sessão",

@@ -1,14 +1,20 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { LookupAddress } from "node:dns";
-import { isIPPrivado, normalizaUrl, resolveHostPublico, statusDosItens, calculaFracaoCategoria, checaCors, VerificadorErro, type ItemCheck } from "./verificador";
+import { isIPPrivado, normalizaUrl, resolveHostPublico, statusDosItens, calculaFracaoCategoria, checaCors, checaMx, checaMtaSts, VerificadorErro, type ItemCheck } from "./verificador";
 
-const { lookupMock, requestMock } = vi.hoisted(() => ({ lookupMock: vi.fn(), requestMock: vi.fn() }));
+const { lookupMock, requestMock, resolveMxMock, resolveTxtMock } = vi.hoisted(() => ({
+  lookupMock: vi.fn(),
+  requestMock: vi.fn(),
+  resolveMxMock: vi.fn(),
+  resolveTxtMock: vi.fn(),
+}));
 
 vi.mock("node:dns/promises", () => ({
   default: {
     lookup: lookupMock,
-    resolveTxt: vi.fn(),
+    resolveTxt: resolveTxtMock,
     resolveCaa: vi.fn(),
+    resolveMx: resolveMxMock,
   },
 }));
 
@@ -331,5 +337,57 @@ describe("checaCors", () => {
       };
     });
     await expect(checaCors("https://exemplo.com")).resolves.toEqual([{ id: "cors-indisponivel", status: "aviso" }]);
+  });
+});
+
+describe("checaMx", () => {
+  beforeEach(() => {
+    resolveMxMock.mockReset();
+  });
+
+  it("reporta temMx true quando há registros MX", async () => {
+    resolveMxMock.mockResolvedValue([
+      { priority: 10, exchange: "mx1.exemplo.com." },
+      { priority: 20, exchange: "mx2.exemplo.com." },
+    ]);
+    const r = await checaMx("exemplo.com");
+    expect(r.temMx).toBe(true);
+    expect(r.trocas[0]).toEqual({ prioridade: 10, exchange: "mx1.exemplo.com." });
+  });
+
+  it("reporta temMx false quando não há registros MX", async () => {
+    resolveMxMock.mockResolvedValue([]);
+    await expect(checaMx("exemplo.com")).resolves.toEqual({ temMx: false, trocas: [] });
+  });
+
+  it("reporta temMx false quando o lookup falha (domínio sem MX)", async () => {
+    resolveMxMock.mockRejectedValue(new Error("ENODATA"));
+    await expect(checaMx("exemplo.com")).resolves.toEqual({ temMx: false, trocas: [] });
+  });
+});
+
+describe("checaMtaSts", () => {
+  beforeEach(() => {
+    resolveTxtMock.mockReset();
+  });
+
+  it("retorna sucesso true e mode quando a política existe", async () => {
+    resolveTxtMock.mockResolvedValue([["v=STSv1; id=20240901; mx: mx1.exemplo.com; mode: enforce"]]);
+    const r = await checaMtaSts("exemplo.com");
+    expect(r.sucesso).toBe(true);
+    expect(r.mode).toBe("enforce");
+  });
+
+  it("retorna sucesso false quando não há política MTA-STS", async () => {
+    resolveTxtMock.mockResolvedValue([["spf1; no mta"]]);
+    const r = await checaMtaSts("exemplo.com");
+    expect(r.sucesso).toBe(false);
+    expect(r.mode).toBeUndefined();
+  });
+
+  it("retorna sucesso false quando o TXT lança erro", async () => {
+    resolveTxtMock.mockRejectedValue(new Error("ENODATA"));
+    const r = await checaMtaSts("exemplo.com");
+    expect(r.sucesso).toBe(false);
   });
 });

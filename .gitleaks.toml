@@ -1,0 +1,10 @@
+[extend]
+useDefault = true
+
+[[allowlist]]
+description = "Placeholders de exemplo e valores de teste (sem segredo real)"
+paths = [
+  ".env.example",
+  "lib/webhook.test.ts",
+  "lib/monitor.test.ts",
+]

@@ -114,6 +114,7 @@ function valoresItem(item: ItemCheck, locale: string): Record<string, string | n
   if (d.caminho !== undefined) valores.caminho = d.caminho;
   if (d.registros !== undefined) valores.registros = d.registros;
   if (d.estado !== undefined) valores.estado = d.estado;
+  if (d.mode !== undefined) valores.mode = d.mode;
   return valores;
 }
 
@@ -144,11 +145,22 @@ function detalheItem(t: Traduz, item: ItemCheck, locale: string): string {
     case "permissions":
       return item.status === "ok" && item.dados?.valor ? item.dados.valor : t(`${base}.detalhe.ausente`);
     case "spf":
-      return t(`${base}.detalhe.${item.status === "ok" ? "ok" : "ausente"}`, p);
+      return item.dados?.semEmail
+        ? t(`${base}.detalhe.sem-email`)
+        : t(`${base}.detalhe.${item.status === "ok" ? "ok" : "ausente"}`, p);
     case "dmarc":
-      return t(`${base}.detalhe.${item.status === "ok" ? "ok" : "ausente"}`);
+      return item.dados?.semEmail
+        ? t(`${base}.detalhe.sem-email`)
+        : t(`${base}.detalhe.${item.status === "ok" ? "ok" : "ausente"}`);
     case "dkim":
-      return t(`${base}.detalhe.${item.status === "ok" ? "ok" : "ausente"}`, p);
+      return item.dados?.semEmail
+        ? t(`${base}.detalhe.sem-email`)
+        : t(`${base}.detalhe.${item.status === "ok" ? "ok" : "ausente"}`, p);
+    case "mta-sts":
+      if (item.dados?.semEmail) return t(`${base}.detalhe.sem-email`);
+      return item.status === "ok"
+        ? t(`${base}.detalhe.ok`, p)
+        : t(`${base}.detalhe.ausente`);
     case "cookies":
       return t(`${base}.detalhe.ok`);
     case "cookies-secure":

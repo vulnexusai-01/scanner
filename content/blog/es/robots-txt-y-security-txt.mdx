@@ -1,0 +1,84 @@
+---
+titulo: "robots.txt y security.txt: archivos que todo sitio debería tener"
+descricao: "robots.txt orienta a los crawlers sobre qué indexar; security.txt les dice a los investigadores cómo reportar vulnerabilidades. Ve cómo crear un buen archivo de cada uno."
+data: "2026-08-17"
+slug: "robots-txt-y-security-txt"
+---
+
+Dos archivos pequeños hacen una gran diferencia en la operación de un sitio: `robots.txt` y `security.txt`. Uno les dice a los buscadores qué indexar; el otro les dice a los investigadores de seguridad cómo reportar problemas. Los dos son públicos, los dos los revisan los auditores — y los dos son fáciles de crear correctamente.
+
+## Qué es robots.txt
+
+El `robots.txt` es un archivo de texto en la raíz del sitio que orienta a los crawlers (Google, Bing y otros) sobre qué acceder e indexar. **No es un control de acceso** — es una recomendación. Un enlace puede seguir accesible incluso sin aparecer en el archivo.
+
+Ejemplo básico:
+
+```
+User-agent: *
+Disallow: /admin/
+Disallow: /api/private
+Allow: /public/
+Sitemap: https://tu-sitio.com/sitemap.xml
+```
+
+- `User-agent` — a qué crawler se aplica la regla (`*` para todos).
+- `Disallow` — rutas que el crawler no debe acceder.
+- `Allow` — excepciones a reglas de bloqueo anteriores.
+- `Sitemap` — apunta al sitemap.xml del sitio.
+
+Error clásico: esconder contenido sensible en el `robots.txt`. Es un archivo público — cualquiera puede leerlo y acceder directamente a las URLs listadas. Para proteger de verdad, bloquea en el servidor (auth, reglas de acceso) y trata el `robots.txt` solo como orientación de indexación.
+
+## Qué es security.txt
+
+El `security.txt` es el estándar (RFC 9116) para informar cómo contactar con el equipo de seguridad de un sitio. Sigue el mismo espíritu que el `robots.txt`: un archivo público, en un lugar predecible, que automatiza el flujo de reportes de vulnerabilidades.
+
+La ubicación estándar es:
+
+```
+https://tu-sitio.com/.well-known/security.txt
+```
+
+Ejemplo:
+
+```
+Contact: mailto:security@tu-sitio.com
+Expires: 2027-01-01T00:00:00.000Z
+Preferred-Languages: es, en
+```
+
+- `Contact` — canal para reportar vulnerabilidades (correo, URL, página).
+- `Expires` — fecha de validez del archivo, en formato ISO 8601. Sin ella, algunos consumidores tratan el archivo como inválido.
+- `Preferred-Languages` — idiomas aceptados para el reporte.
+- `Encryption` — opcional, para la clave PGP de contacto.
+- `Policy` — opcional, enlace a la política de divulgación del proyecto.
+
+Sin un `security.txt` (o con `Expires` ausente/vacío), los investigadores pueden tener dificultad para saber a dónde reportar — y el reporte acaba yendo a canales equivocados o no ocurriendo.
+
+## Cómo crearlos
+
+**robots.txt** — en la raíz del sitio (`/robots.txt`), con reglas mínimas:
+
+```
+User-agent: *
+Disallow: /admin/
+Disallow: /private/
+Sitemap: https://tu-sitio.com/sitemap.xml
+```
+
+**security.txt** — en `/.well-known/security.txt`, servido con `Content-Type: text/plain`, preferiblemente con un `security.txt` en la raíz que redirija al `/.well-known/`.
+
+En Next.js, por ejemplo, el `security.txt` puede ser una ruta dinámica que sirva el contenido con el `Content-Type` correcto — como hace VulnexusAI en su propio sitio.
+
+## Errores comunes
+
+- **Usar robots.txt para "esconder" contenido sensible**: es público; el acceso real debe bloquearse en el servidor.
+- **Bloquear la propia indexación**: `Disallow: /` sin motivo es una página fuera de Google.
+- **Olvidar el `Sitemap`**: el archivo apunta al crawler hacia las URLs canónicas.
+- **security.txt sin `Contact` o sin `Expires`**: el estándar exige ambos para que el archivo se considere válido.
+- **Dejar que el `Expires` venza**: un archivo expirado es tratado como inexistente por varias herramientas.
+- **Poner el archivo solo en la raíz o solo en el `.well-known`**: el estándar recomienda la ruta `.well-known`, con redirección desde la raíz cuando sea posible.
+- **Ignorar el contenido**: un `security.txt` que apunta a un correo desactualizado es peor que no tener archivo.
+
+## Cómo verificar
+
+El escáner de VulnexusAI incluye ambos en la categoría "Contenido y Metadatos": verifica si `/robots.txt`, `/sitemap.xml` y `/.well-known/security.txt` existen y responden con estado 200. ¿Falta alguno? El informe muestra exactamente cuál y cómo crearlo.
