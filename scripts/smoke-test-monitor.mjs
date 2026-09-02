@@ -19,7 +19,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 async function executaRequisicao(metodo, endpoint, body) {
   const url = `${BASE_URL}${endpoint}`;
   try {
-    const res = await fetch(url, {
+    let res = await fetch(url, {
       method: metodo,
       headers: {
         "Content-Type": "application/json",
@@ -32,6 +32,27 @@ async function executaRequisicao(metodo, endpoint, body) {
       json = await res.json();
     } catch {
       // Se não for JSON, mantém null
+    }
+
+    // Se bater em rate-limit (429), aguarda o tempo indicado e tenta novamente uma vez
+    if (res.status === 429 && json?.retryEmSegundos) {
+      const waitSec = Number(json.retryEmSegundos) + 2;
+      console.log(`   ⏳ Rate limit atingido (429). Aguardando ${waitSec}s para liberar a janela...`);
+      await sleep(waitSec * 1000);
+
+      res = await fetch(url, {
+        method: metodo,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      try {
+        json = await res.json();
+      } catch {
+        json = null;
+      }
     }
 
     return {
