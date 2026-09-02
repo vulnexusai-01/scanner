@@ -115,7 +115,8 @@
     "titulo": "Compare com outros scanners",
     "descricao": "Quer confirmar o resultado? Rode o mesmo domínio em scanners independentes e compare. O resultado da VulnexusAI é automatizado e não substitui um laudo profissional.",
     "securityHeaders": "SecurityHeaders.com — headers de segurança",
-    "sslLabs": "SSL Labs — TLS e certificado"
+    "sslLabs": "SSL Labs — TLS e certificado",
+    "verComparacao": "Ver comparação completa →"
   },
   "historico": {
     "titulo": "Histórico recente"
@@ -283,6 +284,117 @@
           "p": "Você pode apagar cookies e dados locais pelas configurações do navegador a qualquer momento. Isso não impede o uso da ferramenta; apenas remove a preferência de idioma e o histórico local."
         }
       ]
+    },
+    "vsSecurityHeaders": {
+      "metaTitle": "VulnexusAI vs SecurityHeaders.com — qual usar? | VulnexusAI",
+      "metaDescription": "Comparação honesta entre VulnexusAI e SecurityHeaders.com: o que cada ferramenta verifica, o que falta em cada uma e quando usar cada uma.",
+      "eyebrow": "VULNEXUSAI · COMPARAÇÃO",
+      "titulo": "VulnexusAI vs SecurityHeaders.com",
+      "resumo": "SecurityHeaders.com é uma referência confiável para checar headers HTTP de segurança desde 2014. A VulnexusAI cobre esse mesmo ponto e adiciona SSL/TLS, DNS de email, cookies, arquivos sensíveis e monitoramento contínuo — tudo em uma única verificação.",
+      "colunaCriterio": "Critério",
+      "colunaConcorrente": "SecurityHeaders.com",
+      "tabela": [
+        {
+          "criterio": "O que verifica",
+          "nos": "HTTPS/SSL, headers, DNS de email, cookies, CORS, arquivos sensíveis, conteúdo e infraestrutura",
+          "eles": "Apenas headers HTTP de segurança"
+        },
+        {
+          "criterio": "Certificado SSL/TLS",
+          "nos": "Sim — validade, emissor e versão do protocolo",
+          "eles": "Não analisa"
+        },
+        {
+          "criterio": "DNS de email (SPF/DKIM/DMARC)",
+          "nos": "Sim",
+          "eles": "Não"
+        },
+        {
+          "criterio": "Arquivos sensíveis expostos (.env, .git, backups)",
+          "nos": "Sim",
+          "eles": "Não"
+        },
+        {
+          "criterio": "Monitoramento contínuo com alertas",
+          "nos": "Sim — Discord ou Slack, diário",
+          "eles": "A API de automação foi descontinuada em abril de 2026; o scanner manual segue no ar"
+        },
+        {
+          "criterio": "Idiomas",
+          "nos": "Português, inglês e espanhol",
+          "eles": "Inglês"
+        },
+        {
+          "criterio": "Cadastro necessário",
+          "nos": "Não",
+          "eles": "Não, para o scan manual"
+        }
+      ],
+      "veredictoTitulo": "Quando usar cada uma",
+      "veredictoTexto": "SecurityHeaders.com continua sendo uma boa referência específica para headers HTTP. Se você quer isso somado a SSL, DNS de email, cookies e arquivos sensíveis expostos em uma única checagem — com monitoramento contínuo incluso — a VulnexusAI cobre mais terreno numa única passada.",
+      "ctaTitulo": "Rode as duas verificações e compare",
+      "ctaTexto": "Não precisa escolher — a verificação da VulnexusAI é gratuita e leva segundos.",
+      "ctaBotao": "Verificar meu site →",
+      "linkExterno": "Para conferir por conta própria:",
+      "linkExternoTexto": "abrir SecurityHeaders.com"
+    },
+    "vsSslLabs": {
+      "metaTitle": "VulnexusAI vs SSL Labs — qual usar? | VulnexusAI",
+      "metaDescription": "Comparação honesta entre VulnexusAI e SSL Labs (Qualys): profundidade de análise TLS, tempo de resposta e o que cada ferramenta cobre.",
+      "eyebrow": "VULNEXUSAI · COMPARAÇÃO",
+      "titulo": "VulnexusAI vs SSL Labs",
+      "resumo": "SSL Labs, da Qualys, é a referência em análise profunda de TLS/SSL — simula dezenas de combinações de navegador e detalha cadeia de certificado, cifras e vulnerabilidades conhecidas. A VulnexusAI tem foco mais amplo: visão geral de segurança do site em segundos, incluindo o que o SSL Labs não cobre.",
+      "colunaCriterio": "Critério",
+      "colunaConcorrente": "SSL Labs (Qualys)",
+      "tabela": [
+        {
+          "criterio": "Foco principal",
+          "nos": "Visão geral de segurança do site",
+          "eles": "Análise profunda e exclusiva de TLS/SSL"
+        },
+        {
+          "criterio": "Tempo de resposta",
+          "nos": "Segundos",
+          "eles": "Pode levar alguns minutos — simula dezenas de combinações de cliente/navegador"
+        },
+        {
+          "criterio": "Profundidade em TLS",
+          "nos": "Versão de protocolo e validade do certificado",
+          "eles": "Extremamente detalhado — cadeia completa, cifras, vulnerabilidades conhecidas"
+        },
+        {
+          "criterio": "Headers de segurança",
+          "nos": "Sim",
+          "eles": "Não analisa"
+        },
+        {
+          "criterio": "DNS de email (SPF/DKIM/DMARC)",
+          "nos": "Sim",
+          "eles": "Não"
+        },
+        {
+          "criterio": "Arquivos sensíveis expostos",
+          "nos": "Sim",
+          "eles": "Não"
+        },
+        {
+          "criterio": "Monitoramento contínuo",
+          "nos": "Sim — Discord ou Slack, diário",
+          "eles": "Não"
+        },
+        {
+          "criterio": "Idiomas",
+          "nos": "Português, inglês e espanhol",
+          "eles": "Inglês"
+        }
+      ],
+      "veredictoTitulo": "Quando usar cada uma",
+      "veredictoTexto": "Se o seu objetivo é uma auditoria profunda e específica da configuração TLS de um servidor, o SSL Labs é insubstituível. Para uma visão geral rápida — TLS, headers, DNS de email, cookies e arquivos sensíveis, tudo junto — a VulnexusAI cobre mais frentes na mesma checagem. Muitas equipes usam as duas: VulnexusAI para o dia a dia, SSL Labs para auditoria pontual e aprofundada de TLS.",
+      "ctaTitulo": "Rode as duas verificações e compare",
+      "ctaTexto": "Não precisa escolher — a verificação da VulnexusAI é gratuita e leva segundos.",
+      "ctaBotao": "Verificar meu site →",
+      "linkExterno": "Para conferir por conta própria:",
+      "linkExternoTexto": "abrir SSL Labs"
     }
   },
   "categorias": {

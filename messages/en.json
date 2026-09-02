@@ -115,7 +115,8 @@
     "titulo": "Compare with other scanners",
     "descricao": "Want to confirm the result? Run the same domain through independent scanners and compare. The VulnexusAI result is automated and does not replace a professional assessment.",
     "securityHeaders": "SecurityHeaders.com — security headers",
-    "sslLabs": "SSL Labs — TLS and certificate"
+    "sslLabs": "SSL Labs — TLS and certificate",
+    "verComparacao": "See full comparison →"
   },
   "historico": {
     "titulo": "Recent history"
@@ -283,6 +284,117 @@
           "p": "You can clear cookies and local data through your browser settings at any time. This does not stop you from using the tool; it only removes the language preference and local history."
         }
       ]
+    },
+    "vsSecurityHeaders": {
+      "metaTitle": "VulnexusAI vs SecurityHeaders.com — which to use? | VulnexusAI",
+      "metaDescription": "Honest comparison between VulnexusAI and SecurityHeaders.com: what each tool checks, what's missing, and when to use each.",
+      "eyebrow": "VULNEXUSAI · COMPARISON",
+      "titulo": "VulnexusAI vs SecurityHeaders.com",
+      "resumo": "SecurityHeaders.com has been a trusted reference for checking HTTP security headers since 2014. VulnexusAI covers that same ground and adds SSL/TLS, email DNS, cookies, exposed files, and continuous monitoring — all in one scan.",
+      "colunaCriterio": "Criterion",
+      "colunaConcorrente": "SecurityHeaders.com",
+      "tabela": [
+        {
+          "criterio": "What it checks",
+          "nos": "HTTPS/SSL, headers, email DNS, cookies, CORS, exposed files, content and infrastructure",
+          "eles": "HTTP security headers only"
+        },
+        {
+          "criterio": "SSL/TLS certificate",
+          "nos": "Yes — validity, issuer and protocol version",
+          "eles": "Not analyzed"
+        },
+        {
+          "criterio": "Email DNS (SPF/DKIM/DMARC)",
+          "nos": "Yes",
+          "eles": "No"
+        },
+        {
+          "criterio": "Exposed sensitive files (.env, .git, backups)",
+          "nos": "Yes",
+          "eles": "No"
+        },
+        {
+          "criterio": "Continuous monitoring with alerts",
+          "nos": "Yes — Discord or Slack, daily",
+          "eles": "The automation API was discontinued in April 2026; the manual scanner remains available"
+        },
+        {
+          "criterio": "Languages",
+          "nos": "Portuguese, English and Spanish",
+          "eles": "English"
+        },
+        {
+          "criterio": "Signup required",
+          "nos": "No",
+          "eles": "No, for the manual scan"
+        }
+      ],
+      "veredictoTitulo": "When to use each one",
+      "veredictoTexto": "SecurityHeaders.com remains a solid, focused reference for HTTP headers. If you want that plus SSL, email DNS, cookies and exposed sensitive files in a single check — with monitoring included — VulnexusAI covers more ground in one pass.",
+      "ctaTitulo": "Run both checks and compare",
+      "ctaTexto": "No need to choose — VulnexusAI's check is free and takes seconds.",
+      "ctaBotao": "Check my site →",
+      "linkExterno": "To see for yourself:",
+      "linkExternoTexto": "open SecurityHeaders.com"
+    },
+    "vsSslLabs": {
+      "metaTitle": "VulnexusAI vs SSL Labs — which to use? | VulnexusAI",
+      "metaDescription": "Honest comparison between VulnexusAI and SSL Labs (Qualys): TLS analysis depth, response time, and what each tool covers.",
+      "eyebrow": "VULNEXUSAI · COMPARISON",
+      "titulo": "VulnexusAI vs SSL Labs",
+      "resumo": "SSL Labs, by Qualys, is the reference for deep TLS/SSL analysis — it simulates dozens of browser/client combinations and details certificate chains, ciphers and known vulnerabilities. VulnexusAI takes a broader approach: a fast overall security snapshot of a site, including what SSL Labs doesn't cover.",
+      "colunaCriterio": "Criterion",
+      "colunaConcorrente": "SSL Labs (Qualys)",
+      "tabela": [
+        {
+          "criterio": "Main focus",
+          "nos": "Overall site security overview",
+          "eles": "Deep, exclusive TLS/SSL analysis"
+        },
+        {
+          "criterio": "Response time",
+          "nos": "Seconds",
+          "eles": "Can take a few minutes — simulates dozens of client/browser combinations"
+        },
+        {
+          "criterio": "TLS depth",
+          "nos": "Protocol version and certificate validity",
+          "eles": "Extremely detailed — full chain, ciphers, known vulnerabilities"
+        },
+        {
+          "criterio": "Security headers",
+          "nos": "Yes",
+          "eles": "Not analyzed"
+        },
+        {
+          "criterio": "Email DNS (SPF/DKIM/DMARC)",
+          "nos": "Yes",
+          "eles": "No"
+        },
+        {
+          "criterio": "Exposed sensitive files",
+          "nos": "Yes",
+          "eles": "No"
+        },
+        {
+          "criterio": "Continuous monitoring",
+          "nos": "Yes — Discord or Slack, daily",
+          "eles": "No"
+        },
+        {
+          "criterio": "Languages",
+          "nos": "Portuguese, English and Spanish",
+          "eles": "English"
+        }
+      ],
+      "veredictoTitulo": "When to use each one",
+      "veredictoTexto": "If you need a deep, focused audit of a server's TLS configuration, SSL Labs is unmatched. For a fast overview — TLS, headers, email DNS, cookies and exposed files together — VulnexusAI covers more ground in the same check. Many teams use both: VulnexusAI day-to-day, SSL Labs for occasional deep TLS audits.",
+      "ctaTitulo": "Run both checks and compare",
+      "ctaTexto": "No need to choose — VulnexusAI's check is free and takes seconds.",
+      "ctaBotao": "Check my site →",
+      "linkExterno": "To see for yourself:",
+      "linkExternoTexto": "open SSL Labs"
     }
   },
   "categorias": {

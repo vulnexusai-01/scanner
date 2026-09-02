@@ -1561,3 +1561,74 @@ body::before {
     animation: none;
   }
 }
+
+/* ── Comparativo (páginas VS) ─────────────────────────────────────────────── */
+.comparativo {
+  max-width: 860px;
+  margin: 24px auto 0;
+}
+
+.comparativo h1 {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+}
+
+.tabela-comparativo-wrap {
+  overflow-x: auto;
+  margin: 28px 0;
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+}
+
+.tabela-comparativo {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.tabela-comparativo th,
+.tabela-comparativo td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.tabela-comparativo thead th {
+  background: var(--bg-1);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-hi);
+  white-space: nowrap;
+}
+
+.tabela-comparativo tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tabela-comparativo td:first-child {
+  color: var(--text-mid);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tabela-comparativo-nos {
+  color: var(--cyan);
+  font-weight: 600;
+}
+
+.comparar-link-interno {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--cyan);
+  opacity: 0.8;
+  text-decoration: none;
+}
+
+.comparar-link-interno:hover {
+  opacity: 1;
+  text-decoration: underline;
+}

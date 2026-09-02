@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { calculaFracaoCategoria } from "@/lib/fracao-categoria";
 import type { Categoria, ItemCheck, ResultadoCheck, StatusItem } from "@/lib/verificador";
 import Topo from "./components/topo";
+import Link from "next/link";
 
 const CHAVE_HISTORICO = "verificaseguranca:historico";
 const MAX_HISTORICO = 8;
@@ -750,6 +751,9 @@ export default function Scanner() {
                 >
                   {t("comparar.securityHeaders")}
                 </a>
+                <Link href="/vs/securityheaders" className="comparar-link-interno">
+                  {t("comparar.verComparacao")}
+                </Link>
               </li>
               <li>
                 <a
@@ -759,6 +763,9 @@ export default function Scanner() {
                 >
                   {t("comparar.sslLabs")}
                 </a>
+                <Link href="/vs/ssl-labs" className="comparar-link-interno">
+                  {t("comparar.verComparacao")}
+                </Link>
               </li>
             </ul>
           </div>

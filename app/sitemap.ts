@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { artigoCompleto, paresDeSlug, rotasBlog, type LocaleArtigo } from "@/lib/blog";
 import { urlLocale } from "@/lib/rotas";
 
-const PAGINAS = ["sobre", "seguranca", "privacidade", "termos", "cookies"] as const;
+const PAGINAS = ["sobre", "seguranca", "privacidade", "termos", "cookies", "vs/securityheaders", "vs/ssl-labs"] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const home: MetadataRoute.Sitemap[number] = {
