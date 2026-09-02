@@ -408,7 +408,8 @@
       "detalhe": {
         "ok": "Selector(es) encontrado(s): {seletores}.",
         "ausente": "No se encontró ningún selector DKIM común.",
-        "sem-email": "Dominio sin MX — el sitio no usa correo propio; DKIM no aplica."
+        "sem-email": "Dominio sin MX — el sitio no usa correo propio; DKIM no aplica.",
+        "revogado": "Selector(es) con clave revocada: {seletores}."
       },
       "dica": "Configura DKIM en tu proveedor de correo y publica la clave pública en `selector._domainkey.dominio`."
     },

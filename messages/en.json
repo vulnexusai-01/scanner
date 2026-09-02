@@ -408,7 +408,8 @@
       "detalhe": {
         "ok": "Selector(s) found: {seletores}.",
         "ausente": "No common DKIM selector found.",
-        "sem-email": "Domain without MX — the site doesn't use its own email; DKIM doesn't apply."
+        "sem-email": "Domain without MX — the site doesn't use its own email; DKIM doesn't apply.",
+        "revogado": "Selector(s) with revoked key: {seletores}."
       },
       "dica": "Set up DKIM with your email provider and publish the public key at `selector._domainkey.domain`."
     },

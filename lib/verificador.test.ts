@@ -1,6 +1,19 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { LookupAddress } from "node:dns";
-import { isIPPrivado, normalizaUrl, resolveHostPublico, statusDosItens, calculaFracaoCategoria, checaCors, checaMx, checaMtaSts, VerificadorErro, type ItemCheck } from "./verificador";
+import {
+  isIPPrivado,
+  normalizaUrl,
+  resolveHostPublico,
+  statusDosItens,
+  calculaFracaoCategoria,
+  checaCors,
+  checaMx,
+  checaMtaSts,
+  checaDkim,
+  analisaRegistroDkim,
+  VerificadorErro,
+  type ItemCheck,
+} from "./verificador";
 
 const { lookupMock, requestMock, resolveMxMock, resolveTxtMock } = vi.hoisted(() => ({
   lookupMock: vi.fn(),
@@ -389,5 +402,100 @@ describe("checaMtaSts", () => {
     resolveTxtMock.mockRejectedValue(new Error("ENODATA"));
     const r = await checaMtaSts("exemplo.com");
     expect(r.sucesso).toBe(false);
+  });
+});
+
+describe("analisaRegistroDkim", () => {
+  it("valida registro DKIM com tag p em base64", () => {
+    expect(analisaRegistroDkim("v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC123456789")).toBe("valido");
+  });
+
+  it("aceita variações de espaçamento e case-insensitive em v=DKIM1", () => {
+    expect(analisaRegistroDkim("v = dkim1 ; k = rsa ; p = MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC123456789 ;")).toBe("valido");
+  });
+
+  it("identifica chave revogada com p= vazio (RFC 6376 / example.com)", () => {
+    expect(analisaRegistroDkim("v=DKIM1; p=")).toBe("revogado");
+    expect(analisaRegistroDkim("v=DKIM1; k=rsa; p=   ")).toBe("revogado");
+    expect(analisaRegistroDkim("v=DKIM1; p=; s=email")).toBe("revogado");
+  });
+
+  it("identifica registro com v=DKIM1 mas sem tag p como revogado", () => {
+    expect(analisaRegistroDkim("v=DKIM1; k=rsa")).toBe("revogado");
+  });
+
+  it("retorna invalido para registros que não são DKIM", () => {
+    expect(analisaRegistroDkim("v=spf1 include:_spf.google.com ~all")).toBe("invalido");
+    expect(analisaRegistroDkim("texto qualquer aleatorio")).toBe("invalido");
+  });
+});
+
+describe("checaDkim", () => {
+  beforeEach(() => {
+    resolveTxtMock.mockReset();
+  });
+
+  it("retorna sucesso=true e seletor em encontrado quando há chave pública válida", async () => {
+    resolveTxtMock.mockImplementation((host: string) => {
+      if (host === "google._domainkey.exemplo.com") {
+        return Promise.resolve([["v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC123456789"]]);
+      }
+      return Promise.resolve([]);
+    });
+
+    const r = await checaDkim("exemplo.com");
+    expect(r.sucesso).toBe(true);
+    expect(r.encontrado).toEqual(["google._domainkey"]);
+    expect(r.revogado).toEqual([]);
+  });
+
+  it("retorna sucesso=false e seletor em revogado quando p= é vazio (caso example.com)", async () => {
+    resolveTxtMock.mockImplementation((host: string) => {
+      if (host === "default._domainkey.exemplo.com") {
+        return Promise.resolve([["v=DKIM1; p="]]);
+      }
+      return Promise.resolve([]);
+    });
+
+    const r = await checaDkim("exemplo.com");
+    expect(r.sucesso).toBe(false);
+    expect(r.encontrado).toEqual([]);
+    expect(r.revogado).toEqual(["default._domainkey"]);
+  });
+
+  it("retorna sucesso=false e arrays vazios quando nenhum TXT é retornado ou ocorre erro DNS", async () => {
+    resolveTxtMock.mockRejectedValue(new Error("ENODATA"));
+    const r = await checaDkim("exemplo.com");
+    expect(r.sucesso).toBe(false);
+    expect(r.encontrado).toEqual([]);
+    expect(r.revogado).toEqual([]);
+  });
+
+  it("ignora registros TXT que não são DKIM (não conta como encontrado nem revogado)", async () => {
+    resolveTxtMock.mockResolvedValue([["v=spf1 include:_spf.google.com ~all"], ["google-site-verification=12345"]]);
+    const r = await checaDkim("exemplo.com");
+    expect(r.sucesso).toBe(false);
+    expect(r.encontrado).toEqual([]);
+    expect(r.revogado).toEqual([]);
+  });
+
+  it("processa mix de seletores válidos, revogados e ausentes mantendo contagens e listas corretas", async () => {
+    resolveTxtMock.mockImplementation((host: string) => {
+      if (host === "default._domainkey.exemplo.com") {
+        return Promise.resolve([["v=DKIM1; p="]]);
+      }
+      if (host === "google._domainkey.exemplo.com") {
+        return Promise.resolve([["v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC123456789"]]);
+      }
+      if (host === "k1._domainkey.exemplo.com") {
+        return Promise.resolve([["v=spf1 ~all"]]);
+      }
+      return Promise.resolve([]);
+    });
+
+    const r = await checaDkim("exemplo.com");
+    expect(r.sucesso).toBe(true);
+    expect(r.encontrado).toEqual(["google._domainkey"]);
+    expect(r.revogado).toEqual(["default._domainkey"]);
   });
 });

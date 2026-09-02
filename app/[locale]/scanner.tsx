@@ -153,9 +153,10 @@ function detalheItem(t: Traduz, item: ItemCheck, locale: string): string {
         ? t(`${base}.detalhe.sem-email`)
         : t(`${base}.detalhe.${item.status === "ok" ? "ok" : "ausente"}`);
     case "dkim":
-      return item.dados?.semEmail
-        ? t(`${base}.detalhe.sem-email`)
-        : t(`${base}.detalhe.${item.status === "ok" ? "ok" : "ausente"}`, p);
+      if (item.dados?.semEmail) return t(`${base}.detalhe.sem-email`);
+      if (item.status === "ok") return t(`${base}.detalhe.ok`, p);
+      if (item.dados?.revogado) return t(`${base}.detalhe.revogado`, p);
+      return t(`${base}.detalhe.ausente`);
     case "mta-sts":
       if (item.dados?.semEmail) return t(`${base}.detalhe.sem-email`);
       return item.status === "ok"
