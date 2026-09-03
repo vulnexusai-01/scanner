@@ -2,6 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { paresDeSlug, type LocaleArtigo } from "@/lib/pares-idiomas";
 
 const IDIOMAS_TOPO = ["pt", "en", "es"] as const;
 
@@ -15,6 +16,15 @@ export default function Topo({ mostraHistorico = false }: { mostraHistorico?: bo
   const noBlog = pathname.startsWith("/blog");
   const verificarHref = naHome ? "#verificar" : "/#verificar";
   const historicoHref = naHome ? "#historico" : "/#historico";
+
+  function destinoDoIdioma(idioma: string): string {
+    const match = pathname.match(/^\/blog\/([^/]+)\/?$/);
+    if (match) {
+      const pares = paresDeSlug(locale as LocaleArtigo, match[1]);
+      if (pares) return `/blog/${pares[idioma as LocaleArtigo]}`;
+    }
+    return pathname;
+  }
 
   return (
     <header className="topo">
@@ -53,7 +63,7 @@ export default function Topo({ mostraHistorico = false }: { mostraHistorico?: bo
               key={idioma}
               type="button"
               className={`lang-btn${locale === idioma ? " lang-btn-ativo" : ""}`}
-              onClick={() => router.replace(pathname, { locale: idioma })}
+              onClick={() => router.replace(destinoDoIdioma(idioma), { locale: idioma })}
               aria-label={t(`langSwitcher.${idioma}`)}
             >
               {idioma.toUpperCase()}

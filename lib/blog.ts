@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
+import { PARES_DE_ARTIGOS, paresDeSlug, type LocaleArtigo } from "@/lib/pares-idiomas";
 
 export type FrontmatterArtigo = {
   titulo: string;
@@ -10,29 +11,9 @@ export type FrontmatterArtigo = {
   faq?: Array<{ pergunta: string; resposta: string }>;
 };
 
-export type LocaleArtigo = "pt" | "en" | "es";
+export type { LocaleArtigo } from "@/lib/pares-idiomas";
 
-/**
- * Fonte de verdade das rotas do blog (sitemap, generateStaticParams e hreflang
- * derivam daqui — NÃO do filesystem).
- *
- * IMPORTANTE: todo post novo precisa ser adicionado manualmente a esta lista,
- * com os slugs pareados em pt/en/es, para aparecer no sitemap.xml, ser gerado
- * como página estática e ganhar hreflang correto. Os arquivos .mdx em
- * content/blog/{locale}/ precisam existir com os mesmos slugs.
- */
-export const PARES_DE_ARTIGOS: ReadonlyArray<{ pt: string; en: string; es: string }> = [
-  { pt: "o-que-e-hsts", en: "what-is-hsts", es: "que-es-hsts" },
-  { pt: "content-security-policy-explicada", en: "content-security-policy-explained", es: "content-security-policy-explicada" },
-  { pt: "spf-dkim-dmarc-guia-completo", en: "spf-dkim-dmarc-complete-guide", es: "spf-dkim-dmarc-guia-completo" },
-  { pt: "cookies-seguros-secure-httponly-samesite", en: "secure-cookies-secure-httponly-samesite", es: "cookies-seguras-secure-httponly-samesite" },
-  { pt: "arquivos-sensiveis-expostos", en: "sensitive-files-exposed", es: "archivos-sensibles-expuestos" },
-  { pt: "cors-o-que-e-e-como-configurar", en: "cors-what-it-is-and-how-to-configure", es: "cors-que-es-y-como-configurar" },
-  { pt: "tls-versoes-tls-12-e-tls-13", en: "tls-versions-tls-12-and-tls-13", es: "tls-versiones-tls-12-y-tls-13" },
-  { pt: "robots-txt-e-security-txt", en: "robots-txt-and-security-txt", es: "robots-txt-y-security-txt" },
-  { pt: "erro-cors-como-resolver-nodejs-nginx", en: "fixing-cors-errors-nodejs-nginx", es: "error-de-cors-como-resolverlo-en-nodejs-y-nginx" },
-  { pt: "por-que-emails-caem-no-spam-spf-dkim-dmarc", en: "why-emails-go-to-spam-spf-dkim-dmarc", es: "por-que-tus-emails-caen-en-spam-spf-dkim-dmarc" },
-];
+export { PARES_DE_ARTIGOS } from "@/lib/pares-idiomas";
 
 const RELACIONADOS: Record<string, string[]> = {
   "o-que-e-hsts": ["tls-versoes-tls-12-e-tls-13", "content-security-policy-explicada"],
@@ -85,14 +66,7 @@ export function listarArtigos(locale: LocaleArtigo): Array<{ slug: string; front
     .sort((a, b) => (a.frontmatter.data < b.frontmatter.data ? 1 : -1));
 }
 
-export function paresDeSlug(
-  locale: LocaleArtigo,
-  slug: string
-): { pt: string; en: string; es: string; slugPt: string; slugEn: string; slugEs: string } | undefined {
-  const par = PARES_DE_ARTIGOS.find(p => p[locale] === slug);
-  if (!par) return undefined;
-  return { pt: par.pt, en: par.en, es: par.es, slugPt: par.pt, slugEn: par.en, slugEs: par.es };
-}
+export { paresDeSlug } from "@/lib/pares-idiomas";
 
 export function artigosRelacionados(
   locale: LocaleArtigo,
