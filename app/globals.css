@@ -1561,3 +1561,36 @@ body::before {
     animation: none;
   }
 }
+
+.artigo-faq {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.artigo-faq h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.artigo-faq-item {
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+
+.artigo-faq-item summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text-hi);
+}
+
+.artigo-faq-item p {
+  margin-top: 10px;
+  color: var(--text-mid);
+  font-size: 14px;
+  line-height: 1.6;
+}

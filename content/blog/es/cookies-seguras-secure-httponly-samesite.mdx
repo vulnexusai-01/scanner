@@ -3,6 +3,13 @@ titulo: "Cookies seguras: Secure, HttpOnly y SameSite explicados"
 descricao: "Los atributos Secure, HttpOnly y SameSite controlan cómo se envían y acceden las cookies. Ve qué hace cada uno, cómo configurarlos y los errores comunes."
 data: "2026-08-02"
 slug: "cookies-seguras-secure-httponly-samesite"
+faq:
+  - pergunta: "¿Necesito Secure y HttpOnly en todas las cookies?"
+    resposta: "Para cookies de sesión y autenticación, sí. Secure garantiza que la cookie solo se envíe por HTTPS, y HttpOnly impide que JavaScript la lea, lo que mitiga el robo de cookies vía XSS. Las cookies no sensibles (como la preferencia de tema de la interfaz) no necesitan estrictamente HttpOnly."
+  - pergunta: "¿Qué bloquea realmente SameSite=Lax?"
+    resposta: "SameSite=Lax impide que la cookie se envíe en subpeticiones entre sitios (como imágenes o iframes) y en la mayoría de las peticiones POST entre sitios, aunque la sigue permitiendo en la navegación de primer nivel (hacer clic en un enlace). Esto bloquea la mayoría de los vectores de CSRF sin romper la navegación normal por enlaces."
+  - pergunta: "¿Cuándo necesito realmente SameSite=None?"
+    resposta: "Solo cuando la cookie debe enviarse en un contexto genuinamente entre sitios, como un widget de terceros o un iframe embebido de otro dominio. SameSite=None también exige el atributo Secure — los navegadores lo rechazan si falta."
 ---
 
 Las cookies cargan información sensible — sesión, preferencias, identificadores. Como el navegador las envía automáticamente en cada petición, una cookie mal configurada puede leerse, robarse o enviarse donde no debería. Tres atributos definen la mayor parte de esa seguridad: `Secure`, `HttpOnly` y `SameSite`.

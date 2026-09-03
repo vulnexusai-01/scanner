@@ -1,0 +1,137 @@
+---
+titulo: "CORS error: how to fix it in Node.js and Nginx without using a wildcard"
+descricao: "CORS error blocking your API in production? Learn how to configure Access-Control-Allow-Origin correctly in Express, Nginx and Next.js — without * and without breaking CDN caching."
+data: "2026-09-01"
+slug: "fixing-cors-errors-nodejs-nginx"
+faq:
+  - pergunta: "Why does Access-Control-Allow-Origin: * fail with cookies or Authorization headers?"
+    resposta: "The CORS spec forbids combining a wildcard origin with Access-Control-Allow-Credentials: true. Browsers reject the response outright. You must echo back a specific, allowlisted origin instead of a wildcard whenever credentials are involved."
+  - pergunta: "Why do I need Vary: Origin if I already set Access-Control-Allow-Origin dynamically?"
+    resposta: "Without Vary: Origin, a CDN or proxy can cache the response generated for one origin and serve that same cached response to a different origin, causing intermittent CORS failures that are hard to reproduce."
+  - pergunta: "Why does my POST request fail with a CORS error even though GET works?"
+    resposta: "Requests with a JSON body or custom headers trigger a preflight OPTIONS request first. If your server doesn't explicitly handle OPTIONS and return a 200 or 204, the browser aborts before ever sending the real POST."
+---
+
+If the browser console shows `Access to fetch at '...' from origin '...' has been blocked by CORS policy`, the problem isn't in the frontend — it's in the server configuration. The browser is doing exactly what it should: blocking a response the server didn't explicitly authorize.
+
+## Why the error only shows up in production
+
+In development everything runs on `localhost`, so the same server answers both the frontend and the API — no CORS involved. In production, the frontend lives at `app.myapp.com` and the API at `api.myapp.com` (or `myapp.com/api`). Those are different origins. The browser requires the correct `Access-Control-Allow-Origin` header; without it, it blocks the response.
+
+## Node.js / Express with an origin allowlist
+
+Never use `Access-Control-Allow-Origin: *` on authenticated routes — cookies and Authorization headers aren't sent with a wildcard. Use an allowlist instead:
+
+```js
+const ALLOWED_ORIGINS = [
+  'https://myapp.com',
+  'https://www.myapp.com',
+  'https://staging.myapp.com',
+];
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin'); // avoids incorrect CDN caching
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Authorization'
+    );
+    res.setHeader(
+      'Access-Control-Allow-Methods',
+      'GET, POST, PUT, DELETE, OPTIONS'
+    );
+  }
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
+```
+
+The `Vary: Origin` header is mandatory whenever you reflect the origin dynamically: without it, a CDN can cache the response with one client's `Access-Control-Allow-Origin` and serve it to a different client, causing silent errors.
+
+## Nginx with `map` (no `if` inside `location`)
+
+Nginx's own documentation advises against `if` inside `location` blocks. Use `map` at the `http` level instead:
+
+```nginx
+map $http_origin $cors_origin {
+  default "";
+  "https://myapp.com"         $http_origin;
+  "https://www.myapp.com"     $http_origin;
+  "https://staging.myapp.com" $http_origin;
+}
+
+server {
+  listen 443 ssl;
+  server_name api.myapp.com;
+
+  location / {
+    if ($request_method = OPTIONS) {
+      add_header Access-Control-Allow-Origin  $cors_origin always;
+      add_header Vary                         Origin        always;
+      add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+      add_header Access-Control-Allow-Headers "Content-Type, Authorization"     always;
+      add_header Access-Control-Max-Age       86400;
+      return 204;
+    }
+
+    add_header Access-Control-Allow-Origin      $cors_origin always;
+    add_header Vary                             Origin        always;
+    add_header Access-Control-Allow-Credentials true          always;
+
+    proxy_pass http://localhost:3000;
+  }
+}
+```
+
+## Next.js (App Router) with a dynamic Route Handler
+
+```ts
+// app/api/data/route.ts
+const ALLOWED_ORIGINS = [
+  'https://myapp.com',
+  'https://www.myapp.com',
+];
+
+function corsHeaders(origin: string | null) {
+  const allowed = origin && ALLOWED_ORIGINS.includes(origin) ? origin : '';
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Vary': 'Origin',
+    'Access-Control-Allow-Credentials': 'true',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  };
+}
+
+export async function OPTIONS(req: Request) {
+  const origin = req.headers.get('origin');
+  return new Response(null, { status: 204, headers: corsHeaders(origin) });
+}
+
+export async function GET(req: Request) {
+  const origin = req.headers.get('origin');
+  const data = { ok: true };
+  return Response.json(data, { headers: corsHeaders(origin) });
+}
+```
+
+## Common mistakes that break production
+
+**Wildcard with credentials** — `Access-Control-Allow-Origin: *` combined with `Access-Control-Allow-Credentials: true` is invalid per spec. The browser rejects the response even if the server sends it.
+
+**Preflight without a 200/204 response** — Requests with `Content-Type: application/json` or custom headers trigger an OPTIONS preflight. If the server returns 404 or 405 for OPTIONS, the browser aborts before sending the real request.
+
+**Duplicate header** — If both the proxy (Nginx) and the application (Express) add `Access-Control-Allow-Origin`, the browser receives two values and rejects the response. Pick one place to add it.
+
+**Missing `Vary: Origin`** — When the server reflects the origin dynamically, `Vary: Origin` tells CDNs and proxies the response varies by origin. Without it, a CDN can serve a cached response with the wrong origin to a different client.
+
+**Different port counts as a different origin** — `http://localhost:3000` and `http://localhost:5173` are distinct origins. Add both to the allowlist during development.
+
+---
+
+Configured CORS but still unsure what other security headers your API is missing? [VulnexusAI's scanner](https://vulnexusai.com) checks CORS, HSTS, CSP and 15+ other points in seconds.

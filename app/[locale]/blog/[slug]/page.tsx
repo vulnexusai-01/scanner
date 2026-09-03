@@ -117,6 +117,21 @@ export default async function ArtigoPage({ params }: Props) {
           },
         ],
       },
+      ...(data.faq && data.faq.length > 0
+        ? [
+            {
+              "@type": "FAQPage",
+              mainEntity: data.faq.map(item => ({
+                "@type": "Question",
+                name: item.pergunta,
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: item.resposta,
+                },
+              })),
+            },
+          ]
+        : []),
     ],
   };
 
@@ -150,6 +165,17 @@ export default async function ArtigoPage({ params }: Props) {
               </Link>
             ))}
           </p>
+        )}
+        {data.faq && data.faq.length > 0 && (
+          <section className="artigo-faq">
+            <h2>{t("perguntasFrequentes")}</h2>
+            {data.faq.map((item, i) => (
+              <details key={i} className="artigo-faq-item">
+                <summary>{item.pergunta}</summary>
+                <p>{item.resposta}</p>
+              </details>
+            ))}
+          </section>
         )}
         {relacionados.length > 0 && (
           <section className="blog-relacionados">

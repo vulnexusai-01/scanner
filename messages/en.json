@@ -140,6 +140,7 @@
     "lerArtigo": "Read article",
     "lerEmOutroIdioma": "Read in {idioma}",
     "leiaTambem": "Keep reading",
+    "perguntasFrequentes": "Frequently asked questions",
     "verificarCta": {
       "titulo": "Does your site pass these checks?",
       "texto": "Test any public URL with the free VulnexusAI scanner and get a score from 0 to 100, with a grade from A to F and fix tips.",

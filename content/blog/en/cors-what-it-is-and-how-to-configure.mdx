@@ -3,6 +3,13 @@ titulo: "CORS explained: what it is and how to configure it safely"
 descricao: "CORS decides whether a website can access resources from another origin. Understand how it works, which configurations are dangerous (origin reflection, wildcard with credentials) and how to configure it."
 data: "2026-08-13"
 slug: "cors-what-it-is-and-how-to-configure"
+faq:
+  - pergunta: "Is CORS a security feature that protects my server?"
+    resposta: "Not exactly. CORS is enforced by the browser to protect the user, not the server — it restricts what a web page running in the browser can read from a cross-origin response. A server without CORS restrictions is still directly reachable by tools like curl or another server; CORS doesn't block that."
+  - pergunta: "Can I just set Access-Control-Allow-Origin to the request's Origin for every domain?"
+    resposta: "Only if you also don't need Access-Control-Allow-Credentials: true. Reflecting any origin without an allowlist defeats the purpose of CORS for authenticated requests, since it effectively behaves like a wildcard for every caller."
+  - pergunta: "Why does my request work in Postman but fail in the browser with a CORS error?"
+    resposta: "Tools like Postman aren't subject to the browser's same-origin policy, so they never trigger CORS checks. CORS errors are enforced client-side by browsers only — the request itself often reaches the server fine either way, which is why server logs may show a successful response even though the browser blocked it."
 ---
 
 CORS (Cross-Origin Resource Sharing) is a browser mechanism that decides whether a website can access resources from another origin — an API, an image or a script on a different domain. Misconfigured, it opens the site to abuse; configured well, it stays invisible. It is also one of the areas where the most common mistakes are the most dangerous.

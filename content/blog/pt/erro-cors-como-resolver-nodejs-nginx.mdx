@@ -1,0 +1,137 @@
+---
+titulo: "Erro de CORS: como resolver em Node.js e Nginx sem usar wildcard"
+descricao: "Erro de CORS bloqueando sua API em produção? Aprenda a configurar Access-Control-Allow-Origin corretamente no Express, Nginx e Next.js — sem usar * e sem quebrar o cache da CDN."
+data: "2026-09-01"
+slug: "erro-cors-como-resolver-nodejs-nginx"
+faq:
+  - pergunta: "Por que Access-Control-Allow-Origin: * falha com cookies ou headers de Authorization?"
+    resposta: "O spec de CORS proíbe combinar uma origem wildcard com Access-Control-Allow-Credentials: true. Os navegadores rejeitam a resposta diretamente. Você precisa devolver uma origem específica da allowlist em vez de um wildcard sempre que houver credenciais envolvidas."
+  - pergunta: "Por que preciso de Vary: Origin se já defino Access-Control-Allow-Origin dinamicamente?"
+    resposta: "Sem Vary: Origin, uma CDN ou proxy pode cachear a resposta gerada para uma origem e entregar essa mesma resposta cacheada para outra origem, causando falhas de CORS intermitentes e difíceis de reproduzir."
+  - pergunta: "Por que minha requisição POST falha com erro de CORS embora o GET funcione?"
+    resposta: "Requisições com corpo JSON ou headers personalizados disparam primeiro uma requisição preflight OPTIONS. Se o seu servidor não tratar OPTIONS explicitamente e devolver um 200 ou 204, o navegador aborta antes de enviar a requisição POST real."
+---
+
+Se o console do navegador mostra `Access to fetch at '...' from origin '...' has been blocked by CORS policy`, o problema não está no frontend — está na configuração do servidor. O navegador está fazendo exatamente o que deve: bloqueando uma resposta que o servidor não autorizou explicitamente.
+
+## Por que o erro só aparece em produção
+
+Em desenvolvimento tudo roda em `localhost`, então o mesmo servidor responde ao frontend e à API — sem CORS envolvido. Em produção, o frontend vive em `app.meusite.com` e a API em `api.meusite.com` (ou `meusite.com/api`). São origens diferentes. O navegador exige o header `Access-Control-Allow-Origin` correto; sem ele, bloqueia a resposta.
+
+## Node.js / Express com uma allowlist de origens
+
+Nunca use `Access-Control-Allow-Origin: *` em rotas autenticadas — cookies e headers de Authorization não são enviados com um wildcard. Use uma allowlist:
+
+```js
+const ORIGENS_PERMITIDAS = [
+  "https://meusite.com",
+  "https://www.meusite.com",
+  "https://staging.meusite.com",
+];
+
+app.use((req, res, next) => {
+  const origem = req.headers.origin;
+  if (ORIGENS_PERMITIDAS.includes(origem)) {
+    res.setHeader("Access-Control-Allow-Origin", origem);
+    res.setHeader("Vary", "Origin"); // evita cache incorreto na CDN
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization"
+    );
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS"
+    );
+  }
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+  next();
+});
+```
+
+O header `Vary: Origin` é obrigatório sempre que você reflete a origem dinamicamente: sem ele, uma CDN pode cachear a resposta com o `Access-Control-Allow-Origin` de um cliente e serví-la para outro, causando erros silenciosos.
+
+## Nginx com `map` (sem `if` dentro de `location`)
+
+A própria documentação do Nginx desaconselha `if` dentro de blocos `location`. Use `map` no nível `http`:
+
+```nginx
+map $http_origin $cors_origin {
+  default "";
+  "https://meusite.com"         $http_origin;
+  "https://www.meusite.com"     $http_origin;
+  "https://staging.meusite.com" $http_origin;
+}
+
+server {
+  listen 443 ssl;
+  server_name api.meusite.com;
+
+  location / {
+    if ($request_method = OPTIONS) {
+      add_header Access-Control-Allow-Origin  $cors_origin always;
+      add_header Vary                         Origin        always;
+      add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+      add_header Access-Control-Allow-Headers "Content-Type, Authorization"     always;
+      add_header Access-Control-Max-Age       86400;
+      return 204;
+    }
+
+    add_header Access-Control-Allow-Origin      $cors_origin always;
+    add_header Vary                             Origin        always;
+    add_header Access-Control-Allow-Credentials true          always;
+
+    proxy_pass http://localhost:3000;
+  }
+}
+```
+
+## Next.js (App Router) com um Route Handler dinâmico
+
+```ts
+// app/api/dados/route.ts
+const ORIGENS_PERMITIDAS = [
+  "https://meusite.com",
+  "https://www.meusite.com",
+];
+
+function corsHeaders(origin: string | null) {
+  const permitida = origin && ORIGENS_PERMITIDAS.includes(origin) ? origin : "";
+  return {
+    "Access-Control-Allow-Origin": permitida,
+    "Vary": "Origin",
+    "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  };
+}
+
+export async function OPTIONS(req: Request) {
+  const origin = req.headers.get("origin");
+  return new Response(null, { status: 204, headers: corsHeaders(origin) });
+}
+
+export async function GET(req: Request) {
+  const origin = req.headers.get("origin");
+  const data = { ok: true };
+  return Response.json(data, { headers: corsHeaders(origin) });
+}
+```
+
+## Erros comuns que quebram produção
+
+**Wildcard com credenciais** — `Access-Control-Allow-Origin: *` combinado com `Access-Control-Allow-Credentials: true` é inválido segundo o spec. O navegador rejeita a resposta mesmo que o servidor a envie.
+
+**Preflight sem resposta 200/204** — Requisições com `Content-Type: application/json` ou headers personalizados acionam um preflight OPTIONS. Se o servidor devolver 404 ou 405 para OPTIONS, o navegador aborta antes de enviar a requisição real.
+
+**Header duplicado** — Se tanto o proxy (Nginx) quanto a aplicação (Express) adicionam `Access-Control-Allow-Origin`, o navegador recebe dois valores e rejeita a resposta. Escolha um único lugar para adicioná-lo.
+
+**`Vary: Origin` ausente** — Quando o servidor reflete a origem dinamicamente, `Vary: Origin` informa às CDNs e proxies que a resposta varia conforme a origem. Sem ele, uma CDN pode entregar uma resposta cacheada com a origem errada para um cliente diferente.
+
+**Porta diferente conta como origem diferente** — `http://localhost:3000` e `http://localhost:5173` são origens distintas. Adicione ambas à allowlist durante o desenvolvimento.
+
+---
+
+Configurou o CORS mas ainda não sabe quais outros headers de segurança faltam na sua API? O [scanner da VulnexusAI](https://vulnexusai.com) verifica CORS, HSTS, CSP e mais de 15 outros pontos em segundos.

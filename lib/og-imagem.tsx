@@ -40,6 +40,7 @@ export async function gerarImagemOg(): Promise<ImageResponse> {
             src={logoSrc}
             width={88}
             height={88}
+            alt=""
             style={{ display: "flex", boxShadow: "0 8px 32px rgba(59, 130, 246, 0.35)" }}
           />
           <div style={{ fontSize: 68, fontWeight: 700, display: "flex" }}>

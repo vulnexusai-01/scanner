@@ -3,6 +3,13 @@ titulo: "TLS: qué versión usar y por qué desactivar TLS 1.0 y 1.1"
 descricao: "TLS 1.2 y TLS 1.3 son las versiones seguras del protocolo. Ve cómo se comparan, por qué TLS 1.0 y 1.1 están obsoletas y cómo configurar el servidor."
 data: "2026-08-14"
 slug: "tls-versiones-tls-12-y-tls-13"
+faq:
+  - pergunta: "¿El TLS 1.2 sigue siendo seguro de usar en 2026?"
+    resposta: "Sí. El TLS 1.2 sigue considerándose seguro cuando se configura con cipher suites modernos y tiene amplio soporte. El TLS 1.3 es preferido para nuevas implementaciones por ser más rápido y eliminar opciones de cipher heredadas, pero el TLS 1.2 por sí solo no es una vulnerabilidad."
+  - pergunta: "¿Por qué debería desactivar el TLS 1.0 y el TLS 1.1?"
+    resposta: "El TLS 1.0 y el 1.1 tienen debilidades criptográficas conocidas y fueron oficialmente descontinuados por los principales navegadores y los estándares de cumplimiento PCI DSS. Mantenerlos habilitados no añade compatibilidad para ningún cliente moderno y solo amplía tu superficie de ataque."
+  - pergunta: "¿Habilitar el TLS 1.3 rompe los navegadores antiguos?"
+    resposta: "No. El TLS 1.3 es retrocompatible: los clientes que solo soportan TLS 1.2 simplemente negociarán la versión anterior, siempre que el TLS 1.2 también siga habilitado en el servidor."
 ---
 
 El candado del navegador depende del TLS — el protocolo que cifra la conexión entre el usuario y el servidor. Pero no basta con "tener HTTPS": la versión del TLS importa tanto como el certificado. Mantener habilitadas versiones antiguas es una de las formas más silenciosas en que un sitio queda vulnerable.

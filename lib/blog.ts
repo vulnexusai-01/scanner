@@ -7,10 +7,20 @@ export type FrontmatterArtigo = {
   descricao: string;
   data: string;
   slug: string;
+  faq?: Array<{ pergunta: string; resposta: string }>;
 };
 
 export type LocaleArtigo = "pt" | "en" | "es";
 
+/**
+ * Fonte de verdade das rotas do blog (sitemap, generateStaticParams e hreflang
+ * derivam daqui — NÃO do filesystem).
+ *
+ * IMPORTANTE: todo post novo precisa ser adicionado manualmente a esta lista,
+ * com os slugs pareados em pt/en/es, para aparecer no sitemap.xml, ser gerado
+ * como página estática e ganhar hreflang correto. Os arquivos .mdx em
+ * content/blog/{locale}/ precisam existir com os mesmos slugs.
+ */
 export const PARES_DE_ARTIGOS: ReadonlyArray<{ pt: string; en: string; es: string }> = [
   { pt: "o-que-e-hsts", en: "what-is-hsts", es: "que-es-hsts" },
   { pt: "content-security-policy-explicada", en: "content-security-policy-explained", es: "content-security-policy-explicada" },
@@ -20,17 +30,21 @@ export const PARES_DE_ARTIGOS: ReadonlyArray<{ pt: string; en: string; es: strin
   { pt: "cors-o-que-e-e-como-configurar", en: "cors-what-it-is-and-how-to-configure", es: "cors-que-es-y-como-configurar" },
   { pt: "tls-versoes-tls-12-e-tls-13", en: "tls-versions-tls-12-and-tls-13", es: "tls-versiones-tls-12-y-tls-13" },
   { pt: "robots-txt-e-security-txt", en: "robots-txt-and-security-txt", es: "robots-txt-y-security-txt" },
+  { pt: "erro-cors-como-resolver-nodejs-nginx", en: "fixing-cors-errors-nodejs-nginx", es: "error-de-cors-como-resolverlo-en-nodejs-y-nginx" },
+  { pt: "por-que-emails-caem-no-spam-spf-dkim-dmarc", en: "why-emails-go-to-spam-spf-dkim-dmarc", es: "por-que-tus-emails-caen-en-spam-spf-dkim-dmarc" },
 ];
 
 const RELACIONADOS: Record<string, string[]> = {
   "o-que-e-hsts": ["tls-versoes-tls-12-e-tls-13", "content-security-policy-explicada"],
   "content-security-policy-explicada": ["cors-o-que-e-e-como-configurar", "cookies-seguros-secure-httponly-samesite"],
-  "spf-dkim-dmarc-guia-completo": ["o-que-e-hsts", "cookies-seguros-secure-httponly-samesite"],
+  "spf-dkim-dmarc-guia-completo": ["o-que-e-hsts", "cookies-seguros-secure-httponly-samesite", "por-que-emails-caem-no-spam-spf-dkim-dmarc"],
   "cookies-seguros-secure-httponly-samesite": ["cors-o-que-e-e-como-configurar", "content-security-policy-explicada"],
   "arquivos-sensiveis-expostos": ["robots-txt-e-security-txt", "o-que-e-hsts"],
-  "cors-o-que-e-e-como-configurar": ["content-security-policy-explicada", "cookies-seguros-secure-httponly-samesite"],
+  "cors-o-que-e-e-como-configurar": ["content-security-policy-explicada", "cookies-seguros-secure-httponly-samesite", "erro-cors-como-resolver-nodejs-nginx"],
   "tls-versoes-tls-12-e-tls-13": ["o-que-e-hsts", "cors-o-que-e-e-como-configurar"],
   "robots-txt-e-security-txt": ["arquivos-sensiveis-expostos", "o-que-e-hsts"],
+  "erro-cors-como-resolver-nodejs-nginx": ["cors-o-que-e-e-como-configurar", "content-security-policy-explicada"],
+  "por-que-emails-caem-no-spam-spf-dkim-dmarc": ["spf-dkim-dmarc-guia-completo", "o-que-e-hsts"],
 };
 
 const BASE = path.join(process.cwd(), "content", "blog");
