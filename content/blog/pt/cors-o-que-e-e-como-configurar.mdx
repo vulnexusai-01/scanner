@@ -78,6 +78,8 @@ location /api {
 
 **Regra geral:** monte uma lista fixa de origens conhecidas. Se o recurso é público e não usa credenciais, `Access-Control-Allow-Origin: *` é aceitável — mas sem `Allow-Credentials`.
 
+Se você já entendeu o mecanismo mas está travado com um erro de CORS em produção agora, veja o [guia prático de correção no Node.js e no Nginx](/blog/erro-cors-como-resolver-nodejs-nginx), com exemplos prontos de allowlist e do header `Vary: Origin`.
+
 ## Erros comuns
 
 - **Refletir o `Origin` recebido**: qualquer site passa a ter acesso. Use uma allowlist.

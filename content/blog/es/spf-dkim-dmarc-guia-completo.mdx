@@ -61,6 +61,8 @@ v=DMARC1; p=none; rua=mailto:dmarc@tu-dominio.com; pct=100
 
 El camino recomendado es empezar con `p=none`, seguir los informes por unos días para confirmar que todo tu envío legítimo está autenticado y solo entonces evolucionar a `quarantine` y `reject`.
 
+Si tu correo ya está cayendo en spam ahora mismo, mira también [por qué pasa esto y cómo corregirlo paso a paso](/es/blog/por-que-tus-emails-caen-en-spam-spf-dkim-dmarc), con los registros DNS listos para copiar.
+
 ## Cómo funciona el flujo en conjunto
 
 1. El servidor que envía el correo pasa por SPF (servidor autorizado) y firma con DKIM.

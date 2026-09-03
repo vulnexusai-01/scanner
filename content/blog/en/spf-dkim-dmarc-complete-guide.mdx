@@ -61,6 +61,8 @@ v=DMARC1; p=none; rua=mailto:dmarc@yourdomain.com; pct=100
 
 The recommended path is to start with `p=none`, watch the reports for a few days to confirm all legitimate sending is authenticated, and only then move to `quarantine` and `reject`.
 
+If your emails are already landing in spam right now, see also [why that happens and how to fix it step by step](/en/blog/why-emails-go-to-spam-spf-dkim-dmarc), with ready-to-paste DNS records.
+
 ## How the flow works together
 
 1. The sending server passes SPF (authorized server) and signs with DKIM.

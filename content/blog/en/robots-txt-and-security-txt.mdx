@@ -26,7 +26,7 @@ Sitemap: https://your-site.com/sitemap.xml
 - `Allow` — exceptions to earlier blocking rules.
 - `Sitemap` — points to the site's sitemap.xml.
 
-Classic mistake: hiding sensitive content in `robots.txt`. It is a public file — anyone can read it and access the listed URLs directly. To protect for real, block access at the server level (auth, access rules) and treat `robots.txt` only as an indexing hint.
+Classic mistake: hiding sensitive content in `robots.txt`. It is a public file — anyone can read it and access the listed URLs directly. To protect for real, block access at the server level (auth, access rules) and treat `robots.txt` only as an indexing hint — that matters especially for [files like .env and .git that shouldn't be reachable](/en/blog/sensitive-files-exposed) in the first place.
 
 ## What security.txt is
 

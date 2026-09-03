@@ -73,6 +73,8 @@ Content-Security-Policy: default-src 'self'; ...; report-to csp-endpoint
 
 Esos informes muestran qué directiva se violó y por qué recurso — esencial para detectar un script nuevo olvidado fuera de la política o un recurso de terceros que empezó a usarse.
 
+La CSP protege lo que carga el navegador, pero no es la única línea de defensa del lado del cliente — vale la pena revisar también los [atributos de seguridad de las cookies del sitio](/es/blog/cookies-seguras-secure-httponly-samesite), que reducen el daño si un script llega a ejecutarse pese a la política.
+
 ## Cómo verificar
 
 El escáner de VulnexusAI verifica si el sitio envía el header `Content-Security-Policy`. Si todavía no tiene política, empieza por `default-src 'self'`, activa el reporte y evoluciona poco a poco. Una CSP bien ajustada reduce mucho el impacto de una falla de XSS.

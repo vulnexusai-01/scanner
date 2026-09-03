@@ -73,6 +73,8 @@ Content-Security-Policy: default-src 'self'; ...; report-to csp-endpoint
 
 These reports show which directive was violated and by which resource — essential to catch a newly added script left outside the policy, or a third-party resource that started being used.
 
+CSP protects what the browser loads, but it isn't the only client-side line of defense — it's worth reviewing your [cookie security attributes](/en/blog/secure-cookies-secure-httponly-samesite) too, which limit the damage if a script ever manages to run despite the policy.
+
 ## How to check it
 
 The VulnexusAI scanner checks whether your site sends the `Content-Security-Policy` header. If there is no policy yet, start with `default-src 'self'`, enable reporting, and evolve gradually. A well-tuned CSP greatly reduces the impact of an XSS flaw.

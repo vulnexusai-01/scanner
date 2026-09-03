@@ -18,6 +18,8 @@ Se o console do navegador mostra `Access to fetch at '...' from origin '...' has
 
 Em desenvolvimento você acessa tudo via `localhost`, então o mesmo servidor responde o frontend e a API — sem CORS. Em produção, o frontend fica em `app.meusite.com` e a API em `api.meusite.com` (ou `meusite.com/api`). São origens diferentes. O browser exige o header `Access-Control-Allow-Origin` correto; sem ele, bloqueia.
 
+Se quiser entender o mecanismo completo por trás desse bloqueio antes de mexer na configuração, veja [o que é CORS e como ele funciona](/blog/cors-o-que-e-e-como-configurar).
+
 ## Node.js / Express com allowlist de origens
 
 Nunca use `Access-Control-Allow-Origin: *` em rotas autenticadas — cookies e headers de Authorization não são enviados com wildcard. Use uma allowlist:

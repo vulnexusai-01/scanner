@@ -26,7 +26,7 @@ Sitemap: https://tu-sitio.com/sitemap.xml
 - `Allow` — excepciones a reglas de bloqueo anteriores.
 - `Sitemap` — apunta al sitemap.xml del sitio.
 
-Error clásico: esconder contenido sensible en el `robots.txt`. Es un archivo público — cualquiera puede leerlo y acceder directamente a las URLs listadas. Para proteger de verdad, bloquea en el servidor (auth, reglas de acceso) y trata el `robots.txt` solo como orientación de indexación.
+Error clásico: esconder contenido sensible en el `robots.txt`. Es un archivo público — cualquiera puede leerlo y acceder directamente a las URLs listadas. Para proteger de verdad, bloquea en el servidor (auth, reglas de acceso) y trata el `robots.txt` solo como orientación de indexación — eso importa especialmente para [archivos como .env y .git que no deberían estar accesibles](/es/blog/archivos-sensibles-expuestos) en primer lugar.
 
 ## Qué es security.txt
 

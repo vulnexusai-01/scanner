@@ -63,6 +63,8 @@ Después del cambio, prueba: la negociación debe ocurrir en TLS 1.2 o 1.3, nunc
 - **Usar herramientas que solo prueban el sitio por HTTPS**: verifica la versión realmente negociada, no solo el candado.
 - **Olvidar los servidores internos**: la API, los paneles y los subdominios también necesitan la misma regla.
 
+Después de asegurar que solo TLS 1.2 y 1.3 son aceptados, el siguiente paso natural es forzar HTTPS en toda la navegación con el [header HSTS](/es/blog/que-es-hsts).
+
 ## Cómo verificar
 
 El escáner de VulnexusAI se conecta al sitio, registra qué versión de TLS se negoció y señala si TLS 1.0 o 1.1 están habilitados. Junto con la comprobación del certificado, es la categoría "HTTPS y Certificado" del informe — y una corrección de minutos en el servidor.

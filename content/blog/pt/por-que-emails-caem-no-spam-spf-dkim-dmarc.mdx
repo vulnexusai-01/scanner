@@ -72,6 +72,8 @@ v=DMARC1; p=quarantine; rua=mailto:dmarc-reports@suaempresa.com; pct=100
 
 **Progressão recomendada:** comece com `p=none` por 2-4 semanas, analise os relatórios para garantir que emails legítimos estão passando, depois mude para `quarantine` e finalmente `reject`.
 
+Para uma explicação mais aprofundada de cada mecanismo — incluindo como eles trabalham juntos — veja o [guia completo de SPF, DKIM e DMARC](/blog/spf-dkim-dmarc-guia-completo).
+
 ## Sequência de verificação rápida
 
 1. Verifique se o registro SPF existe: `nslookup -type=TXT suaempresa.com`

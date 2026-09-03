@@ -24,6 +24,8 @@ export default function Rodape() {
       </div>
       <nav className="foot-links">
         <Link href="/blog">{t("footerLinks.blog")}</Link>
+        <Link href="/vs/securityheaders">{t("footerLinks.vsSecurityHeaders")}</Link>
+        <Link href="/vs/ssl-labs">{t("footerLinks.vsSslLabs")}</Link>
         <Link href="/sobre">{t("footerLinks.sobre")}</Link>
         <Link href="/privacidade">{t("footerLinks.privacidade")}</Link>
         <Link href="/termos">{t("footerLinks.termos")}</Link>

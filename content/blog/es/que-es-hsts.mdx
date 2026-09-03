@@ -67,6 +67,8 @@ Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains
 - **Confiar en que quitar el header resuelve rápido**: el navegador solo vuelve a aceptar HTTP cuando expira el `max-age` (a menos que la regla se limpie manualmente).
 - **Enviarlo al preload sin cumplir los requisitos**: la lista exige un `max-age` de al menos 31536000 segundos, `includeSubDomains` y el dominio entero en HTTPS.
 
+El HSTS solo protege bien cuando la base de TLS también está correcta — vale la pena revisar si el servidor ya [desactivó las versiones antiguas de TLS](/es/blog/tls-versiones-tls-12-y-tls-13) antes de forzar HTTPS en toda la navegación.
+
 ## Cómo verificar
 
 El escáner de VulnexusAI verifica si el sitio envía el header `Strict-Transport-Security` y también si las visitas por HTTP se redirigen a HTTPS. Es uno de los primeros puntos del informe — y uno de los más fáciles de corregir.

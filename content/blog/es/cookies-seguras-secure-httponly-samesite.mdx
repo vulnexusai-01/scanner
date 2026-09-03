@@ -97,6 +97,8 @@ Atención: detrás de proxies/load balancers, asegúrate de que el servidor sepa
 - **Confiar en que "la configuración del framework" lo resuelve todo**: verifica los headers `Set-Cookie` reales en la respuesta.
 - **Usar `HttpOnly` y aun así leer la cookie con JavaScript**: no son compatibles — si el JS necesita leerla, no es `HttpOnly`.
 
+Las cookies bien configuradas reducen el daño si algo sale mal, pero la primera línea de defensa es impedir que un script malicioso se ejecute — de eso se encarga el header [Content-Security-Policy](/es/blog/content-security-policy-explicada).
+
 ## Cómo verificar
 
 El escáner de VulnexusAI inspecciona las cookies definidas en la cadena de respuesta del sitio y verifica la presencia de `Secure`, `HttpOnly` y `SameSite`. Las cookies de sesión sin esos atributos aparecen directamente en el informe, con la corrección sugerida.

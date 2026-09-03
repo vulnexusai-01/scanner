@@ -55,6 +55,8 @@ RedirectMatch 404 /\.(env|git|DS_Store|sql|bak)
 
 **Verifica antes de publicar.** Después de cada deploy, confirma que las rutas sensibles respondan con error (403/404) y no con el contenido.
 
+Vale la pena revisar también el [robots.txt y el security.txt](/es/blog/robots-txt-y-security-txt) del sitio: el primero orienta a los buscadores sobre qué indexar, el segundo da un canal oficial para que investigadores reporten este tipo de filtración antes de que se convierta en un problema mayor.
+
 ## Errores comunes
 
 - **Bloquear solo el acceso directo a `/.git/`**: las reglas deben cubrir todo el directorio y las variaciones de ruta (ej.: con URL-encoding).

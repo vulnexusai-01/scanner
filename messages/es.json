@@ -129,7 +129,9 @@
     "privacidade": "Privacidad",
     "termos": "Términos",
     "cookies": "Cookies",
-    "blog": "Blog"
+    "blog": "Blog",
+    "vsSecurityHeaders": "vs SecurityHeaders",
+    "vsSslLabs": "vs SSL Labs"
   },
   "blog": {
     "metaTitle": "Blog | VulnexusAI",

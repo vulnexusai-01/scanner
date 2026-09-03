@@ -55,6 +55,8 @@ RedirectMatch 404 /\.(env|git|DS_Store|sql|bak)
 
 **Verify before publishing.** After every deploy, confirm that sensitive paths respond with an error (403/404), not with content.
 
+It's also worth reviewing your site's [robots.txt and security.txt](/en/blog/robots-txt-and-security-txt): the first tells search engines what to index, the second gives security researchers an official channel to report this exact kind of leak before it becomes a bigger problem.
+
 ## Common mistakes
 
 - **Blocking only direct access to `/.git/`**: the rules need to cover the whole directory and path variations (e.g. URL-encoded).
