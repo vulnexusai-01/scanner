@@ -10,6 +10,7 @@ const monitor: Monitor = {
   webhookTipo: "discord",
   cron: "0 6 * * *",
   criadoEm: "2026-08-13T00:00:00.000Z",
+  tokenHash: "0".repeat(64),
 };
 
 function resultado(score: number, grade: ResultadoCheck["grade"]): ResultadoCheck {

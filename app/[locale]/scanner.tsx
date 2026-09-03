@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { calculaFracaoCategoria } from "@/lib/fracao-categoria";
 import type { Categoria, ItemCheck, ResultadoCheck, StatusItem } from "@/lib/verificador";
 import Topo from "./components/topo";
+import Link from "next/link";
 
 const CHAVE_HISTORICO = "verificaseguranca:historico";
 const MAX_HISTORICO = 8;
@@ -153,9 +154,10 @@ function detalheItem(t: Traduz, item: ItemCheck, locale: string): string {
         ? t(`${base}.detalhe.sem-email`)
         : t(`${base}.detalhe.${item.status === "ok" ? "ok" : "ausente"}`);
     case "dkim":
-      return item.dados?.semEmail
-        ? t(`${base}.detalhe.sem-email`)
-        : t(`${base}.detalhe.${item.status === "ok" ? "ok" : "ausente"}`, p);
+      if (item.dados?.semEmail) return t(`${base}.detalhe.sem-email`);
+      if (item.status === "ok") return t(`${base}.detalhe.ok`, p);
+      if (item.dados?.revogado) return t(`${base}.detalhe.revogado`, p);
+      return t(`${base}.detalhe.ausente`);
     case "mta-sts":
       if (item.dados?.semEmail) return t(`${base}.detalhe.sem-email`);
       return item.status === "ok"
@@ -749,6 +751,9 @@ export default function Scanner() {
                 >
                   {t("comparar.securityHeaders")}
                 </a>
+                <Link href="/vs/securityheaders" className="comparar-link-interno">
+                  {t("comparar.verComparacao")}
+                </Link>
               </li>
               <li>
                 <a
@@ -758,6 +763,9 @@ export default function Scanner() {
                 >
                   {t("comparar.sslLabs")}
                 </a>
+                <Link href="/vs/ssl-labs" className="comparar-link-interno">
+                  {t("comparar.verComparacao")}
+                </Link>
               </li>
             </ul>
           </div>

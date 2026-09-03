@@ -21,6 +21,7 @@ export type ItemDados = {
   valor?: string;
   quantidade?: number;
   seletores?: string;
+  revogado?: boolean;
   ok?: number;
   total?: number;
   caminho?: string;
@@ -446,17 +447,73 @@ async function checaDmarc(host: string): Promise<{ registros: string[]; temDmarc
   return { registros, temDmarc: registros.length > 0 };
 }
 
-const SELETORES_DKIM = ["default", "google", "selector1", "selector2", "k1", "s1", "s2", "mail"];
+export const SELETORES_DKIM = ["default", "google", "selector1", "selector2", "k1", "s1", "s2", "mail"];
 
-async function checaDkim(host: string): Promise<{ encontrado: string[]; sucesso: boolean }> {
+export type ResultadoDkim = {
+  encontrado: string[];
+  revogado: string[];
+  sucesso: boolean;
+};
+
+export function analisaRegistroDkim(registro: string): "valido" | "revogado" | "invalido" {
+  const temVersaoDkim = /(?:^|;)\s*v\s*=\s*DKIM1(?:\s*;|\s*$)/i.test(registro);
+  if (!temVersaoDkim) return "invalido";
+
+  const matchP = registro.match(/(?:^|;)\s*p\s*=\s*([^;]*)/i);
+  if (!matchP) {
+    return "revogado";
+  }
+
+  const chavePublica = matchP[1]?.trim() ?? "";
+  if (!chavePublica) {
+    return "revogado";
+  }
+
+  const chaveLimpa = chavePublica.replace(/\s+/g, "");
+  if (chaveLimpa.length >= 8 && /^[A-Za-z0-9+/=]+$/.test(chaveLimpa)) {
+    return "valido";
+  }
+
+  return "revogado";
+}
+
+export async function checaDkim(host: string): Promise<ResultadoDkim> {
   const resultados = await Promise.all(
     SELETORES_DKIM.map(async seletor => {
       const registros = await registrosTxt(`${seletor}._domainkey.${host}`);
-      return registros.length > 0 ? `${seletor}._domainkey` : null;
+      if (registros.length === 0) return null;
+
+      for (const reg of registros) {
+        const status = analisaRegistroDkim(reg);
+        if (status === "valido") {
+          return { seletor: `${seletor}._domainkey`, tipo: "valido" as const };
+        }
+      }
+
+      for (const reg of registros) {
+        const status = analisaRegistroDkim(reg);
+        if (status === "revogado") {
+          return { seletor: `${seletor}._domainkey`, tipo: "revogado" as const };
+        }
+      }
+
+      return null;
     })
   );
-  const encontrado = resultados.filter((r): r is string => r !== null);
-  return { encontrado, sucesso: encontrado.length > 0 };
+
+  const encontrado = resultados
+    .filter((r): r is { seletor: string; tipo: "valido" } => r !== null && r.tipo === "valido")
+    .map(r => r.seletor);
+
+  const revogado = resultados
+    .filter((r): r is { seletor: string; tipo: "revogado" } => r !== null && r.tipo === "revogado")
+    .map(r => r.seletor);
+
+  return {
+    encontrado,
+    revogado,
+    sucesso: encontrado.length > 0,
+  };
 }
 
 export async function checaMtaSts(host: string): Promise<{ registros: string[]; sucesso: boolean; mode?: string }> {
@@ -710,11 +767,24 @@ export async function verificarSite(input: string): Promise<ResultadoCheck> {
       status: dmarc.temDmarc ? "ok" : "falha",
       dados: dmarc.temDmarc ? undefined : undefined,
     });
-    itensDns.push({
-      id: "dkim",
-      status: dkim.sucesso ? "ok" : "aviso",
-      dados: dkim.sucesso ? { seletores: dkim.encontrado.join(", ") } : undefined,
-    });
+    if (dkim.sucesso) {
+      itensDns.push({
+        id: "dkim",
+        status: "ok",
+        dados: { seletores: dkim.encontrado.join(", ") },
+      });
+    } else if (dkim.revogado.length > 0) {
+      itensDns.push({
+        id: "dkim",
+        status: "aviso",
+        dados: { seletores: dkim.revogado.join(", "), revogado: true },
+      });
+    } else {
+      itensDns.push({
+        id: "dkim",
+        status: "aviso",
+      });
+    }
     itensDns.push({
       id: "mta-sts",
       status: mtaSts.sucesso ? "ok" : "aviso",

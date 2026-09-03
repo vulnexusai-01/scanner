@@ -2,14 +2,20 @@ import { describe, expect, it } from "vitest";
 import {
   adicionaMonitor,
   comparaResultados,
+  geraToken,
+  hashToken,
   leMonitor,
   leUltimoResultado,
   listaMonitores,
   removeMonitor,
   salvaUltimoResultado,
+  validaToken,
   type Monitor,
 } from "./monitor";
 import type { Categoria, ResultadoCheck } from "./verificador";
+
+const tokenInicial = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2";
+const tokenHashInicial = hashToken(tokenInicial);
 
 const monitor: Monitor = {
   url: "https://exemplo.com/",
@@ -18,6 +24,7 @@ const monitor: Monitor = {
   webhookTipo: "discord",
   cron: "0 6 * * *",
   criadoEm: "2026-08-13T00:00:00.000Z",
+  tokenHash: tokenHashInicial,
 };
 
 function categoria(id: string, itens: Array<{ id: string; status: "ok" | "aviso" | "falha" }>): Categoria {
@@ -35,6 +42,31 @@ function resultado(score: number, categorias: Categoria[]): ResultadoCheck {
     timestamp: "2026-08-13T00:00:00.000Z",
   };
 }
+
+describe("monitor (autenticação por token)", () => {
+  it("gera token hexadecimal com 64 caracteres (32 bytes)", () => {
+    const token = geraToken();
+    expect(typeof token).toBe("string");
+    expect(token).toHaveLength(64);
+    expect(/^[0-9a-f]{64}$/.test(token)).toBe(true);
+  });
+
+  it("gera hash SHA-256 consistente", () => {
+    const token = "teste-token-123";
+    const hash1 = hashToken(token);
+    const hash2 = hashToken(token);
+    expect(hash1).toBe(hash2);
+    expect(hash1).toHaveLength(64);
+  });
+
+  it("valida token correto e rejeita incorreto", () => {
+    const token = geraToken();
+    const hash = hashToken(token);
+    expect(validaToken(token, hash)).toBe(true);
+    expect(validaToken("token-errado", hash)).toBe(false);
+    expect(validaToken("", hash)).toBe(false);
+  });
+});
 
 describe("monitor (fallback em memória)", () => {
   it("adiciona e lê um monitor", async () => {

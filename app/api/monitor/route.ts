@@ -1,8 +1,23 @@
 import { NextRequest } from "next/server";
 import { normalizaUrl, VerificadorErro } from "@/lib/verificador";
 import { checaRateLimit, ipDaRequisicao } from "@/lib/rate-limit";
-import { adicionaMonitor, removeMonitor, type Monitor, type WebhookTipo } from "@/lib/monitor";
-import { agendaMonitoramento, cancelaMonitoramento, cronValido, CRON_PADRAO, QStashErro } from "@/lib/qstash";
+import {
+  adicionaMonitor,
+  geraToken,
+  hashToken,
+  leMonitor,
+  removeMonitor,
+  validaToken,
+  type Monitor,
+  type WebhookTipo,
+} from "@/lib/monitor";
+import {
+  agendaMonitoramento,
+  cancelaMonitoramento,
+  cronValido,
+  CRON_PADRAO,
+  QStashErro,
+} from "@/lib/qstash";
 
 export const maxDuration = 30;
 
@@ -73,7 +88,14 @@ export async function POST(request: NextRequest) {
   const { corpo, resposta } = await leCorpo(request);
   if (resposta) return resposta;
 
-  const body = corpo as { url?: unknown; webhookUrl?: unknown; webhookTipo?: unknown; cron?: unknown };
+  const body = corpo as {
+    url?: unknown;
+    webhookUrl?: unknown;
+    webhookTipo?: unknown;
+    cron?: unknown;
+    token?: unknown;
+    rotacionarToken?: unknown;
+  };
 
   if (typeof body.url !== "string" || !body.url.trim()) {
     return respostaErro("Informe uma URL.", "url-ausente", 400);
@@ -89,6 +111,33 @@ export async function POST(request: NextRequest) {
     return err instanceof VerificadorErro
       ? respostaErro(err.message, err.codigo, 422)
       : respostaErro("URL inválida.", "url-invalida", 422);
+  }
+
+  const monitorExistente = await leMonitor(hostname);
+  let tokenHash: string;
+  let tokenParaRetorno: string | null = null;
+
+  if (monitorExistente) {
+    const tokenFornecido = typeof body.token === "string" ? body.token.trim() : "";
+    if (!tokenFornecido || !validaToken(tokenFornecido, monitorExistente.tokenHash)) {
+      return respostaErro(
+        "Monitoramento já existe para este domínio. Informe o token de dono para atualizar as configurações.",
+        "monitor-ja-existe",
+        409
+      );
+    }
+
+    if (body.rotacionarToken === true) {
+      const novoToken = geraToken();
+      tokenHash = hashToken(novoToken);
+      tokenParaRetorno = novoToken;
+    } else {
+      tokenHash = monitorExistente.tokenHash;
+    }
+  } else {
+    const novoToken = geraToken();
+    tokenHash = hashToken(novoToken);
+    tokenParaRetorno = novoToken;
   }
 
   const webhookUrl = validaWebhookUrl(body.webhookUrl);
@@ -112,7 +161,8 @@ export async function POST(request: NextRequest) {
     webhookUrl,
     webhookTipo,
     cron,
-    criadoEm: new Date().toISOString(),
+    criadoEm: monitorExistente ? monitorExistente.criadoEm : new Date().toISOString(),
+    tokenHash,
   };
 
   try {
@@ -126,15 +176,30 @@ export async function POST(request: NextRequest) {
 
   await adicionaMonitor(monitor);
 
+  if (tokenParaRetorno) {
+    return Response.json(
+      {
+        ok: true,
+        hostname,
+        webhookTipo,
+        cron,
+        token: tokenParaRetorno,
+        aviso: "Guarde este token — ele é necessário para atualizar ou remover o monitoramento e não será mostrado novamente.",
+        mensagem: `Monitoramento de ${hostname} ativado — rodará de acordo com o cron "${cron}" e avisará no webhook quando o score cair ou um item piorar.`,
+      },
+      { status: 201 }
+    );
+  }
+
   return Response.json(
     {
       ok: true,
       hostname,
       webhookTipo,
       cron,
-      mensagem: `Monitoramento de ${hostname} ativado — rodará de acordo com o cron "${cron}" e avisará no webhook quando o score cair ou um item piorar.`,
+      mensagem: `Monitoramento de ${hostname} atualizado — rodará de acordo com o cron "${cron}" e avisará no webhook quando o score cair ou um item piorar.`,
     },
-    { status: 201 }
+    { status: 200 }
   );
 }
 
@@ -146,7 +211,7 @@ export async function DELETE(request: NextRequest) {
   const { corpo, resposta } = await leCorpo(request);
   if (resposta) return resposta;
 
-  const body = corpo as { url?: unknown };
+  const body = corpo as { url?: unknown; token?: unknown };
   if (typeof body.url !== "string" || !body.url.trim()) {
     return respostaErro("Informe uma URL.", "url-ausente", 400);
   }
@@ -158,6 +223,13 @@ export async function DELETE(request: NextRequest) {
     return err instanceof VerificadorErro
       ? respostaErro(err.message, err.codigo, 422)
       : respostaErro("URL inválida.", "url-invalida", 422);
+  }
+
+  const tokenFornecido = typeof body.token === "string" ? body.token.trim() : "";
+  const monitor = await leMonitor(hostname);
+
+  if (!monitor || !tokenFornecido || !validaToken(tokenFornecido, monitor.tokenHash)) {
+    return respostaErro("Token inválido ou monitoramento inexistente.", "token-invalido", 403);
   }
 
   await removeMonitor(hostname);

@@ -115,7 +115,8 @@
     "titulo": "Compara con otros escáneres",
     "descricao": "¿Quieres confirmar el resultado? Ejecuta el mismo dominio en escáneres independientes y compara. El resultado de VulnexusAI es automatizado y no sustituye un informe profesional.",
     "securityHeaders": "SecurityHeaders.com — encabezados de seguridad",
-    "sslLabs": "SSL Labs — TLS y certificado"
+    "sslLabs": "SSL Labs — TLS y certificado",
+    "verComparacao": "Ver comparación completa →"
   },
   "historico": {
     "titulo": "Historial reciente"
@@ -284,6 +285,117 @@
           "p": "Puedes borrar cookies y datos locales desde la configuración del navegador en cualquier momento. Esto no impide el uso de la herramienta; solo elimina la preferencia de idioma y el historial local."
         }
       ]
+    },
+    "vsSecurityHeaders": {
+      "metaTitle": "VulnexusAI vs SecurityHeaders.com — ¿cuál usar? | VulnexusAI",
+      "metaDescription": "Comparación honesta entre VulnexusAI y SecurityHeaders.com: qué verifica cada herramienta, qué le falta a cada una y cuándo usar cada una.",
+      "eyebrow": "VULNEXUSAI · COMPARACIÓN",
+      "titulo": "VulnexusAI vs SecurityHeaders.com",
+      "resumo": "SecurityHeaders.com es una referencia confiable para revisar headers HTTP de seguridad desde 2014. VulnexusAI cubre lo mismo y suma SSL/TLS, DNS de email, cookies, archivos sensibles expuestos y monitoreo continuo — todo en una sola verificación.",
+      "colunaCriterio": "Criterio",
+      "colunaConcorrente": "SecurityHeaders.com",
+      "tabela": [
+        {
+          "criterio": "Qué verifica",
+          "nos": "HTTPS/SSL, headers, DNS de email, cookies, CORS, archivos sensibles, contenido e infraestructura",
+          "eles": "Solo headers HTTP de seguridad"
+        },
+        {
+          "criterio": "Certificado SSL/TLS",
+          "nos": "Sí — validez, emisor y versión del protocolo",
+          "eles": "No lo analiza"
+        },
+        {
+          "criterio": "DNS de email (SPF/DKIM/DMARC)",
+          "nos": "Sí",
+          "eles": "No"
+        },
+        {
+          "criterio": "Archivos sensibles expuestos (.env, .git, backups)",
+          "nos": "Sí",
+          "eles": "No"
+        },
+        {
+          "criterio": "Monitoreo continuo con alertas",
+          "nos": "Sí — Discord o Slack, diario",
+          "eles": "La API de automatización se descontinuó en abril de 2026; el scanner manual sigue disponible"
+        },
+        {
+          "criterio": "Idiomas",
+          "nos": "Portugués, inglés y español",
+          "eles": "Inglés"
+        },
+        {
+          "criterio": "Registro necesario",
+          "nos": "No",
+          "eles": "No, para el escaneo manual"
+        }
+      ],
+      "veredictoTitulo": "Cuándo usar cada una",
+      "veredictoTexto": "SecurityHeaders.com sigue siendo una buena referencia específica para headers HTTP. Si además quieres SSL, DNS de email, cookies y archivos sensibles expuestos en una sola revisión — con monitoreo incluido — VulnexusAI cubre más terreno en un solo paso.",
+      "ctaTitulo": "Corre ambas verificaciones y compara",
+      "ctaTexto": "No hace falta elegir — la verificación de VulnexusAI es gratuita y toma segundos.",
+      "ctaBotao": "Verificar mi sitio →",
+      "linkExterno": "Para comprobarlo tú mismo:",
+      "linkExternoTexto": "abrir SecurityHeaders.com"
+    },
+    "vsSslLabs": {
+      "metaTitle": "VulnexusAI vs SSL Labs — ¿cuál usar? | VulnexusAI",
+      "metaDescription": "Comparación honesta entre VulnexusAI y SSL Labs (Qualys): profundidad del análisis TLS, tiempo de respuesta y qué cubre cada herramienta.",
+      "eyebrow": "VULNEXUSAI · COMPARACIÓN",
+      "titulo": "VulnexusAI vs SSL Labs",
+      "resumo": "SSL Labs, de Qualys, es la referencia en análisis profundo de TLS/SSL — simula decenas de combinaciones de navegador y detalla la cadena de certificados, cifrados y vulnerabilidades conocidas. VulnexusAI tiene un enfoque más amplio: una visión general de seguridad del sitio en segundos, incluyendo lo que SSL Labs no cubre.",
+      "colunaCriterio": "Criterio",
+      "colunaConcorrente": "SSL Labs (Qualys)",
+      "tabela": [
+        {
+          "criterio": "Enfoque principal",
+          "nos": "Visión general de seguridad del sitio",
+          "eles": "Análisis profundo y exclusivo de TLS/SSL"
+        },
+        {
+          "criterio": "Tiempo de respuesta",
+          "nos": "Segundos",
+          "eles": "Puede tardar algunos minutos — simula decenas de combinaciones de cliente/navegador"
+        },
+        {
+          "criterio": "Profundidad en TLS",
+          "nos": "Versión del protocolo y validez del certificado",
+          "eles": "Extremadamente detallado — cadena completa, cifrados, vulnerabilidades conocidas"
+        },
+        {
+          "criterio": "Headers de seguridad",
+          "nos": "Sí",
+          "eles": "No lo analiza"
+        },
+        {
+          "criterio": "DNS de email (SPF/DKIM/DMARC)",
+          "nos": "Sí",
+          "eles": "No"
+        },
+        {
+          "criterio": "Archivos sensibles expuestos",
+          "nos": "Sí",
+          "eles": "No"
+        },
+        {
+          "criterio": "Monitoreo continuo",
+          "nos": "Sí — Discord o Slack, diario",
+          "eles": "No"
+        },
+        {
+          "criterio": "Idiomas",
+          "nos": "Portugués, inglés y español",
+          "eles": "Inglés"
+        }
+      ],
+      "veredictoTitulo": "Cuándo usar cada una",
+      "veredictoTexto": "Si necesitas una auditoría profunda y específica de la configuración TLS de un servidor, SSL Labs no tiene comparación. Para una visión general rápida — TLS, headers, DNS de email, cookies y archivos sensibles juntos — VulnexusAI cubre más terreno en la misma revisión. Muchos equipos usan ambas: VulnexusAI en el día a día, SSL Labs para auditorías puntuales y profundas de TLS.",
+      "ctaTitulo": "Corre ambas verificaciones y compara",
+      "ctaTexto": "No hace falta elegir — la verificación de VulnexusAI es gratuita y toma segundos.",
+      "ctaBotao": "Verificar mi sitio →",
+      "linkExterno": "Para comprobarlo tú mismo:",
+      "linkExternoTexto": "abrir SSL Labs"
     }
   },
   "categorias": {
@@ -409,7 +521,8 @@
       "detalhe": {
         "ok": "Selector(es) encontrado(s): {seletores}.",
         "ausente": "No se encontró ningún selector DKIM común.",
-        "sem-email": "Dominio sin MX — el sitio no usa correo propio; DKIM no aplica."
+        "sem-email": "Dominio sin MX — el sitio no usa correo propio; DKIM no aplica.",
+        "revogado": "Selector(es) con clave revocada: {seletores}."
       },
       "dica": "Configura DKIM en tu proveedor de correo y publica la clave pública en `selector._domainkey.dominio`."
     },

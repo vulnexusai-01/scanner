@@ -10,6 +10,15 @@ Feito com [Next.js](https://nextjs.org), `next-intl` e [Upstash](https://upstash
 
 O scanner pode monitorar domínios continuamente: um cron do [QStash](https://upstash.com) executa `POST /api/monitor/run` no horário agendado, o site é re-verificado e, se o score cair ou algum item piorar de `ok` para `falha`, um alerta é enviado para um webhook do Discord ou Slack.
 
+### Autenticação por Token de Dono
+
+Para prevenir sequestro de domínios monitorados ou cancelamentos não autorizados, o monitoramento utiliza autenticação por token:
+
+- **Criação (`POST /api/monitor`):** Ao cadastrar um novo domínio, a API gera e retorna um `token` de dono (hexadecimal de 32 bytes / 64 caracteres) com status `201`. O token é salvo exclusivamente como hash SHA-256 (`tokenHash`) no banco de dados e nunca é armazenado em texto puro.
+- **Aviso:** Guarde o token com segurança! Ele é exibido **apenas uma vez** na criação e não pode ser recuperado se perdido.
+- **Atualização:** Para alterar o webhook ou cron de um domínio já monitorado, envie o `token` correspondente no corpo do `POST /api/monitor`. Tentativas sem o token correto retornarão `409 Conflict` (`monitor-ja-existe`). Para gerar um novo token durante a atualização, envie `"rotacionarToken": true`.
+- **Cancelamento (`DELETE /api/monitor`):** É obrigatório enviar o `token` de dono no corpo. Caso o token não seja enviado ou seja inválido, a API retornará `403 Forbidden` (`token-invalido`) sem vazar a existência do domínio.
+
 ### Env vars (Upstash)
 
 ```bash
@@ -26,8 +35,12 @@ APP_URL=https://vulnexusai.com
 
 ### API
 
-- `POST /api/monitor` — corpo `{ "url": "...", "webhookUrl": "...", "webhookTipo": "discord"|"slack", "cron": "0 6 * * *" }`. `webhookTipo` e `cron` são opcionais (padrões: `discord` e `0 6 * * *`, diariamente às 06:00 UTC). Reenviar a mesma URL atualiza o webhook e o cron.
-- `DELETE /api/monitor` — corpo `{ "url": "..." }`. Remove o monitor e cancela o agendamento no QStash.
+- `POST /api/monitor` — Cria ou atualiza o monitoramento.
+  - **Criação:** `{ "url": "https://meusite.com", "webhookUrl": "...", "webhookTipo": "discord"|"slack", "cron": "0 6 * * *" }`
+    - Retorna `201` com `{ "ok": true, "hostname": "...", "token": "...", "aviso": "..." }`.
+  - **Atualização:** `{ "url": "https://meusite.com", "token": "...", "webhookUrl": "...", "rotacionarToken": false }`
+    - Retorna `200` (ou `201` se `rotacionarToken` for `true`).
+- `DELETE /api/monitor` — `{ "url": "https://meusite.com", "token": "..." }`. Remove o monitor e cancela o agendamento no QStash.
 - `POST /api/monitor/run` — chamado somente pelo QStash; a assinatura é verificada com `verifySignatureAppRouter` (as chaves de assinatura são obrigatórias). O corpo `{ "hostname": "..." }` processa um domínio; sem corpo, processa todos os monitores. Sempre responde `200` ao fim da rodada para evitar re-execuções do QStash por erro de scan.
 - Rate limit: `monitor` permite 5 requisições por janela de 5 minutos (mesmo padrão de `verificar`).
 
