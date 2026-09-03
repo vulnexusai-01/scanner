@@ -5,44 +5,46 @@ import { urlLocale } from "@/lib/rotas";
 const PAGINAS = ["sobre", "seguranca", "privacidade", "termos", "cookies", "vs/securityheaders", "vs/ssl-labs"] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  const base = urlLocale("pt", "/");
+
   const home: MetadataRoute.Sitemap[number] = {
-    url: "https://vulnexusai.com",
+    url: base,
     lastModified: new Date(),
     changeFrequency: "monthly",
     priority: 1,
     alternates: {
       languages: {
-        pt: "https://vulnexusai.com",
-        en: "https://vulnexusai.com/en",
-        es: "https://vulnexusai.com/es",
+        pt: urlLocale("pt", "/"),
+        en: urlLocale("en", "/"),
+        es: urlLocale("es", "/"),
       },
     },
   };
 
   const paginas: MetadataRoute.Sitemap = PAGINAS.map(p => ({
-    url: `https://vulnexusai.com/${p}`,
+    url: urlLocale("pt", `/${p}`),
     lastModified: new Date(),
     changeFrequency: "yearly",
     priority: 0.6,
     alternates: {
       languages: {
-        pt: `https://vulnexusai.com/${p}`,
-        en: `https://vulnexusai.com/en/${p}`,
-        es: `https://vulnexusai.com/es/${p}`,
+        pt: urlLocale("pt", `/${p}`),
+        en: urlLocale("en", `/${p}`),
+        es: urlLocale("es", `/${p}`),
       },
     },
   }));
 
   const blogIndex: MetadataRoute.Sitemap[number] = {
-    url: "https://vulnexusai.com/blog",
+    url: urlLocale("pt", "/blog"),
     lastModified: new Date(),
     changeFrequency: "daily",
     priority: 0.7,
     alternates: {
       languages: {
-        pt: "https://vulnexusai.com/blog",
-        en: "https://vulnexusai.com/en/blog",
-        es: "https://vulnexusai.com/es/blog",
+        pt: urlLocale("pt", "/blog"),
+        en: urlLocale("en", "/blog"),
+        es: urlLocale("es", "/blog"),
       },
     },
   };
@@ -57,9 +59,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.7,
       alternates: {
         languages: {
-          pt: `https://vulnexusai.com/blog/${pares?.slugPt}`,
-          en: `https://vulnexusai.com/en/blog/${pares?.slugEn}`,
-          es: `https://vulnexusai.com/es/blog/${pares?.slugEs}`,
+          pt: `${urlLocale("pt", "/blog/")}${pares?.slugPt}`,
+          en: `${urlLocale("en", "/blog/")}${pares?.slugEn}`,
+          es: `${urlLocale("es", "/blog/")}${pares?.slugEs}`,
         },
       },
     };

@@ -4,9 +4,9 @@ export const IDIOMAS: readonly LocaleArtigo[] = ["pt", "en", "es"] as const;
 
 const BASE = "https://vulnexusai.com";
 
-/** Prefixo de localidade em URL (ex.: "" para pt, "/en" e "/es"). */
+/** Prefixo de localidade em URL (ex.: "/pt", "/en" e "/es"). */
 export function prefixoLocale(locale: string): string {
-  return locale === "pt" ? "" : `/${locale}`;
+  return `/${locale}`;
 }
 
 /** URL absoluta de uma rota, adaptada à localidade. Ex.: caminhoLocale("en", "/blog"). */
