@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore, useState, type CSSProperties } from "react";
+import { useSyncExternalStore, useState, useRef, useEffect, type CSSProperties } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { calculaFracaoCategoria } from "@/lib/fracao-categoria";
 import type { Categoria, ItemCheck, ResultadoCheck, StatusItem } from "@/lib/verificador";
@@ -360,6 +360,13 @@ export default function Scanner() {
   const [monitorando, setMonitorando] = useState(false);
   const [monitorMensagem, setMonitorMensagem] = useState("");
   const [monitorErro, setMonitorErro] = useState("");
+  const resultadoRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (resultado && resultadoRef.current) {
+      resultadoRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [resultado]);
 
   const historico = useSyncExternalStore(
     (onStoreChange) => {
@@ -657,7 +664,7 @@ export default function Scanner() {
       )}
 
       {resultado && (
-        <section className="resultado">
+        <section className="resultado" ref={resultadoRef}>
           <div className="resumo">
             <div className="resumo-info">
               <div className="url">{resultado.urlFinal}</div>
