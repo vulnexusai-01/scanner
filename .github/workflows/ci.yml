@@ -36,3 +36,12 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Ping IndexNow (indexação rápida)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+        run: |
+          # Dá um tempo para o deploy (Vercel) propagar antes de avisar os buscadores.
+          sleep 90
+          node scripts/indexnow-ping.mjs https://vulnexusai.com/sitemap.xml "$INDEXNOW_KEY"
